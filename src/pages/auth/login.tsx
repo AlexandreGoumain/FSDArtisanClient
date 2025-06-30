@@ -168,7 +168,7 @@ export const Login = () => {
                                 <strong>Email:</strong> admin@example.com
                             </div>
                             <div>
-                                <strong>Password:</strong> password
+                                <strong>Password:</strong> password.1
                             </div>
                         </div>
                     </CardContent>
