@@ -1,10 +1,10 @@
 import { useRoutes } from "react-router-dom";
-import { useAuth } from "./context/auth";
 import { privateRoutes, publicRoutes } from "./router/routes";
+import { useAppSelector } from "./store/hooks";
+import { selectIsAuthenticated } from "./store/slices/authSlice";
 
 export const RoutesApp = () => {
-    const { state: authState } = useAuth();
+    const isAuthenticated = useAppSelector(selectIsAuthenticated);
 
-    return useRoutes(authState.isAuthenticated ? privateRoutes : publicRoutes);
-    // return useRoutes(privateRoutes);
+    return useRoutes(isAuthenticated ? privateRoutes : publicRoutes);
 };

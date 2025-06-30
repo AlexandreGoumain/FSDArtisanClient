@@ -1,8 +1,8 @@
 import { Navigate } from "react-router-dom";
 
 import { Layout } from "@/components/layout/layout";
-import { LoginForm } from "@/pages/auth/login";
-import { RegisterForm } from "@/pages/auth/register";
+import { Login } from "@/pages/auth/login";
+import { Register } from "@/pages/auth/register";
 import { FakePage } from "@/pages/fakePage";
 
 export const privateRoutes = [
@@ -65,11 +65,12 @@ export const privateRoutes = [
 export const publicRoutes = [
     {
         path: "/login",
-        element: <LoginForm />,
+        element: <Login />,
     },
     {
         path: "/register",
-        element: <RegisterForm />,
+        element: <Register />,
     },
+
     { path: "*", element: <Navigate to="/login" replace /> },
 ];

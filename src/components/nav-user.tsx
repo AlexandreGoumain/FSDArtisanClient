@@ -20,7 +20,9 @@ import {
     SidebarMenuItem,
     useSidebar,
 } from "@/components/ui/sidebar";
-import { useAuthActions } from "@/context/auth/authHooks";
+import { useAuth } from "@/hooks/useAuthRTK";
+import { Terminal } from "lucide-react";
+import { Error } from "./Error";
 
 export function NavUser({
     user,
@@ -33,7 +35,18 @@ export function NavUser({
     };
 }) {
     const { isMobile } = useSidebar();
-    const { logout } = useAuthActions();
+    const { logout } = useAuth();
+
+    const handleLogout = async () => {
+        const result = await logout();
+        if (!result.success) {
+            <Error
+                title="Erreur"
+                description="Erreur lors de la déconnexion"
+                icon={<Terminal />}
+            />;
+        }
+    };
 
     return (
         <SidebarMenu>
@@ -99,7 +112,7 @@ export function NavUser({
                             </DropdownMenuItem>
                         </DropdownMenuGroup>
                         <DropdownMenuSeparator />
-                        <DropdownMenuItem onClick={logout}>
+                        <DropdownMenuItem onClick={handleLogout}>
                             <IconLogout />
                             Déconnexion
                         </DropdownMenuItem>
