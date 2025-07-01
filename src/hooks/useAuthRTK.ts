@@ -6,12 +6,14 @@ import {
     useRegisterMutation,
 } from "../store/api/authApi";
 import { handleApiError } from "../store/api/baseApi";
-import { useAppSelector } from "../store/hooks";
+import { useAppDispatch, useAppSelector } from "../store/hooks";
 import {
+    forceLogout,
     selectCurrentUser,
     selectIsAuthenticated,
     selectIsAuthInitialized,
 } from "../store/slices/authSlice";
+import { persistor } from "../store/store";
 import { type LoginCredentials, type RegisterData } from "../types/auth";
 
 export const useAuth = () => {
@@ -28,6 +30,8 @@ export const useAuth = () => {
         useLogoutMutation();
 
     const [getCurrentUser] = useLazyGetCurrentUserQuery();
+
+    const dispatch = useAppDispatch();
 
     const initializeAuth = async () => {
         if (!isInitialized) {
@@ -64,14 +68,23 @@ export const useAuth = () => {
     // 🚪 Logout
     const logout = async () => {
         try {
+            // Déconnexion côté serveur
             await logoutMutation().unwrap();
-            return { success: true };
-        } catch (error: unknown) {
-            return {
-                success: false,
-                error: handleApiError(error, "Erreur de déconnexion"),
-            };
+        } catch (error) {
+            console.error("Erreur lors de la déconnexion:", error);
+        } finally {
+            // Forcer la déconnexion locale même si le serveur a échoué
+            dispatch(forceLogout());
+
+            // Nettoyer complètement l'état persisté
+            await persistor.purge();
         }
+    };
+
+    const clearPersistedAuth = async () => {
+        // Utilitaire pour nettoyer uniquement l'auth persistée
+        dispatch(forceLogout());
+        await persistor.purge();
     };
 
     return {
@@ -85,6 +98,7 @@ export const useAuth = () => {
         register,
         logout,
         initializeAuth,
+        clearPersistedAuth,
 
         // Loading states
         isLoginLoading,

@@ -26,6 +26,12 @@ export const authSlice = createSlice({
         setInitialized: (state, action: PayloadAction<boolean>) => {
             state.isInitialized = action.payload;
         },
+        // Action pour forcer la déconnexion et nettoyer le persist
+        forceLogout: (state) => {
+            state.user = null;
+            state.isAuthenticated = false;
+            state.isInitialized = true;
+        },
     },
     extraReducers: (builder) => {
         // 🎯 Réaction aux actions RTK Query
@@ -105,7 +111,7 @@ export const authSlice = createSlice({
     },
 });
 
-export const { resetAuth, setInitialized } = authSlice.actions;
+export const { resetAuth, setInitialized, forceLogout } = authSlice.actions;
 
 export const selectCurrentUser = (state: { auth: AuthState }) =>
     state.auth.user;

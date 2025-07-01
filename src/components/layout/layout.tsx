@@ -27,6 +27,7 @@ export const Layout = () => {
                             <div className="px-4 lg:px-6">
                                 <ChartAreaInteractive />
                             </div>
+                            {/* TODO: remove this */}
                             <DataTable data={data} />
                         </div>
                     </div>

@@ -1,18 +1,17 @@
 import {
     IconCamera,
-    IconChartBar,
     IconDashboard,
     IconDatabase,
     IconFileAi,
     IconFileDescription,
     IconFileWord,
-    IconFolder,
     IconHelp,
     IconInnerShadowTop,
-    IconListDetails,
+    IconPackage,
     IconReport,
     IconSearch,
     IconSettings,
+    IconSofa,
     IconUsers,
 } from "@tabler/icons-react";
 import * as React from "react";
@@ -30,6 +29,7 @@ import {
     SidebarMenuButton,
     SidebarMenuItem,
 } from "@/components/ui/sidebar";
+import { useRouting } from "@/hooks/useRouting";
 
 const data = {
     user: {
@@ -40,28 +40,23 @@ const data = {
     },
     navMain: [
         {
-            title: "Dashboard",
-            url: "#",
+            title: "Tableau de bord",
+            url: "/",
             icon: IconDashboard,
         },
         {
-            title: "Lifecycle",
-            url: "#",
-            icon: IconListDetails,
+            title: "Mes meubles",
+            url: "/furnitures",
+            icon: IconSofa,
         },
         {
-            title: "Analytics",
-            url: "#",
-            icon: IconChartBar,
+            title: "Matériaux",
+            url: "/materials",
+            icon: IconPackage,
         },
         {
-            title: "Projects",
-            url: "#",
-            icon: IconFolder,
-        },
-        {
-            title: "Team",
-            url: "#",
+            title: "Fournisseurs",
+            url: "/suppliers",
             icon: IconUsers,
         },
     ],
@@ -150,6 +145,8 @@ const data = {
 };
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+    const { currentPath } = useRouting();
+
     return (
         <Sidebar collapsible="offcanvas" {...props}>
             <SidebarHeader>
@@ -159,10 +156,10 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                             asChild
                             className="data-[slot=sidebar-menu-button]:!p-1.5"
                         >
-                            <a href="#">
+                            <a href="/">
                                 <IconInnerShadowTop className="!size-5" />
                                 <span className="text-base font-semibold">
-                                    Acme Inc.
+                                    Artisan Client
                                 </span>
                             </a>
                         </SidebarMenuButton>
@@ -170,7 +167,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                 </SidebarMenu>
             </SidebarHeader>
             <SidebarContent>
-                <NavMain items={data.navMain} />
+                <NavMain items={data.navMain} currentPath={currentPath} />
                 <NavDocuments items={data.documents} />
                 <NavSecondary items={data.navSecondary} className="mt-auto" />
             </SidebarContent>
