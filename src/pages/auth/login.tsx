@@ -34,6 +34,8 @@ export const Login = () => {
         return <Navigate to="/" replace />;
     }
 
+    const disableSubmit = isLoginLoading || !!serverError;
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
 
@@ -126,7 +128,7 @@ export const Login = () => {
                             <Button
                                 type="submit"
                                 className="w-full"
-                                disabled={isLoginLoading || !!serverError}
+                                disabled={disableSubmit}
                             >
                                 {isLoginLoading ? (
                                     <>

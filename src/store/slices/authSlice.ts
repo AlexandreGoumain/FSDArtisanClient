@@ -1,6 +1,7 @@
 import { createSlice, type PayloadAction } from "@reduxjs/toolkit";
 import { type IAuthUser } from "../../types/auth";
 import { authApi } from "../api/authApi";
+import { usersApi } from "../api/usersApi";
 
 interface AuthState {
     user: IAuthUser | null;
@@ -65,7 +66,7 @@ export const authSlice = createSlice({
 
         // getCurrentUser réussi
         builder.addMatcher(
-            authApi.endpoints.getCurrentUser.matchFulfilled,
+            usersApi.endpoints.getMeUser.matchFulfilled,
             (state, action) => {
                 state.user = action.payload.user;
                 state.isAuthenticated = true;
@@ -75,10 +76,14 @@ export const authSlice = createSlice({
 
         // getCurrentUser échoué (pas connecté)
         builder.addMatcher(
-            authApi.endpoints.getCurrentUser.matchRejected,
+            usersApi.endpoints.getMeUser.matchRejected,
             (state, action) => {
                 // Si erreur 401, l'utilisateur n'est pas connecté
-                if (action.payload?.status === 401) {
+                if (
+                    action.payload &&
+                    "status" in action.payload &&
+                    action.payload.status === 401
+                ) {
                     state.user = null;
                     state.isAuthenticated = false;
                 }
@@ -100,7 +105,9 @@ export const authSlice = createSlice({
         builder.addMatcher(
             (action) =>
                 action.type.endsWith("/rejected") &&
-                action.payload?.status === 401,
+                action.payload &&
+                "status" in action.payload &&
+                action.payload.status === 401,
             (state) => {
                 // Auto-déconnexion si token expiré
                 state.user = null;

@@ -4,6 +4,11 @@ import { Layout } from "@/components/layout/layout";
 import { Login } from "@/pages/auth/login";
 import { Register } from "@/pages/auth/register";
 import { FakePage } from "@/pages/fakePage";
+import { DetailledFurniture } from "@/pages/furnitures/detailledFurniture";
+import { Furnitures } from "@/pages/furnitures/furnitures";
+import { Dashboard } from "@/pages/home/dashboard";
+import { Ressources } from "@/pages/ressources/ressources";
+import { Suppliers } from "@/pages/suppliers/suppliers";
 
 export const privateRoutes = [
     {
@@ -12,43 +17,23 @@ export const privateRoutes = [
         children: [
             {
                 path: "/",
-                element: <FakePage title="Dashboard" />,
+                element: <Dashboard />,
             },
             {
                 path: "/furnitures",
-                element: <FakePage title="Meubles" />,
-            },
-            {
-                path: "/furnitures/create",
-                element: <FakePage title="Créer Meuble" />,
+                element: <Furnitures />,
             },
             {
                 path: "/furnitures/:id",
-                element: <FakePage title="Détail Meuble" />,
-            },
-            {
-                path: "/furnitures/edit/:id",
-                element: <FakePage title="Modifier Meuble" />,
-            },
-            {
-                path: "/materials",
-                element: <FakePage title="Matériaux" />,
-            },
-            {
-                path: "/materials/create",
-                element: <FakePage title="Créer Matériau" />,
-            },
-            {
-                path: "/materials/:id",
-                element: <FakePage title="Détail Matériau" />,
+                element: <DetailledFurniture />,
             },
             {
                 path: "/suppliers",
-                element: <FakePage title="Fournisseurs" />,
+                element: <Suppliers />,
             },
             {
-                path: "/suppliers/create",
-                element: <FakePage title="Créer Fournisseur" />,
+                path: "/ressources",
+                element: <Ressources />,
             },
             {
                 path: "/categories",

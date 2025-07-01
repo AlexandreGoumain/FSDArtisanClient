@@ -1,4 +1,5 @@
 import { type Icon } from "@tabler/icons-react";
+import type { LucideIcon } from "lucide-react";
 import { Link } from "react-router-dom";
 
 import {
@@ -16,7 +17,7 @@ export function NavMain({
     items: {
         title: string;
         url: string;
-        icon?: Icon;
+        icon?: Icon | LucideIcon;
     }[];
     currentPath: string;
 }) {

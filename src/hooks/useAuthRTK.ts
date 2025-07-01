@@ -1,11 +1,11 @@
 import { useEffect } from "react";
 import {
-    useLazyGetCurrentUserQuery,
     useLoginMutation,
     useLogoutMutation,
     useRegisterMutation,
 } from "../store/api/authApi";
 import { handleApiError } from "../store/api/baseApi";
+import { useLazyGetMeUserQuery } from "../store/api/usersApi";
 import { useAppDispatch, useAppSelector } from "../store/hooks";
 import {
     forceLogout,
@@ -29,7 +29,7 @@ export const useAuth = () => {
     const [logoutMutation, { isLoading: isLogoutLoading }] =
         useLogoutMutation();
 
-    const [getCurrentUser] = useLazyGetCurrentUserQuery();
+    const [getCurrentUser] = useLazyGetMeUserQuery();
 
     const dispatch = useAppDispatch();
 

@@ -1,3 +1,4 @@
+import type { UserData } from "../../schemas/auth";
 import { type IAuthUser } from "../../types/auth";
 import { baseApi } from "./baseApi";
 
@@ -16,9 +17,12 @@ export interface UpdateUserData {
 
 export const usersApi = baseApi.injectEndpoints({
     endpoints: (builder) => ({
-        getUserById: builder.query<{ user: IAuthUser }, string>({
-            query: (id) => `/users/${id}`,
-            providesTags: (result, error, id) => [{ type: "User", id }],
+        getMeUser: builder.query<{ user: IAuthUser }, void>({
+            query: () => `/users/me`,
+            providesTags: () => [{ type: "User", id: "me" }],
+            transformResponse: (response: { data: UserData }) => ({
+                user: response.data,
+            }),
         }),
 
         updateUser: builder.mutation<
@@ -51,7 +55,8 @@ export const usersApi = baseApi.injectEndpoints({
 });
 
 export const {
-    useGetUserByIdQuery,
+    useGetMeUserQuery,
+    useLazyGetMeUserQuery,
     useUpdateUserMutation,
     useDeleteUserMutation,
 } = usersApi;

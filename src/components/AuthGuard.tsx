@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { useLazyGetCurrentUserQuery } from "../store/api/authApi";
+import { useLazyGetMeUserQuery } from "../store/api/usersApi";
 import { useAppSelector } from "../store/hooks";
 import {
     selectIsAuthInitialized,
@@ -13,7 +13,7 @@ interface AuthGuardProps {
 export const AuthGuard = ({ children }: AuthGuardProps) => {
     const isInitialized = useAppSelector(selectIsAuthInitialized);
     const isAuthenticated = useAppSelector(selectIsAuthenticated);
-    const [getCurrentUser] = useLazyGetCurrentUserQuery();
+    const [getCurrentUser] = useLazyGetMeUserQuery();
 
     useEffect(() => {
         // Si pas encore initialisé ET pas authentifié (via persistance)

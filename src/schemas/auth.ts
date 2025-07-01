@@ -51,10 +51,12 @@ export const registerSchema = z.object({
 
 // 👤 Schéma utilisateur
 export const userSchema = z.object({
+    _id: z.string(),
+    firstname: nameSchema,
+    lastname: nameSchema,
     email: emailSchema,
-    username: usernameSchema,
-    firstName: nameSchema,
-    lastName: nameSchema,
+    createdAt: z.string().transform((str) => new Date(str)),
+    updatedAt: z.string().transform((str) => new Date(str)),
 });
 
 // ✏️ Schéma mise à jour profil

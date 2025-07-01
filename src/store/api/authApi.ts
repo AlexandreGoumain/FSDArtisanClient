@@ -33,19 +33,6 @@ export const authApi = baseApi.injectEndpoints({
             invalidatesTags: ["User", "Auth"],
         }),
 
-        // 👤 Get current user (vérif l'auth)
-        getCurrentUser: builder.query<AuthResponse, void>({
-            query: () => "/auth/me",
-            providesTags: ["User"],
-            // Gestion des erreurs d'auth
-            transformErrorResponse: (response) => {
-                if (response.status === 401) {
-                    return { data: null, status: 401 };
-                }
-                return response;
-            },
-        }),
-
         // 🔄 Refresh token (si votre backend le supporte)
         refreshToken: builder.mutation<AuthResponse, void>({
             query: () => ({
@@ -62,7 +49,5 @@ export const {
     useLoginMutation,
     useRegisterMutation,
     useLogoutMutation,
-    useGetCurrentUserQuery,
     useRefreshTokenMutation,
-    useLazyGetCurrentUserQuery,
 } = authApi;

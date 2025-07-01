@@ -1,4 +1,4 @@
-import { IconRecycle, IconSofa, IconTruck } from "@tabler/icons-react";
+import { BoxIcon, SofaIcon, TruckIcon } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import {
@@ -13,8 +13,8 @@ import { getDifferencePercentageByPeriod } from "@/lib/utils";
 
 const setDescriptionGrowOrDown = (percentage: number) => {
     if (percentage === 0) return "aucune variation";
-    if (percentage > 0) return `En hausse de ${percentage}%`;
-    return `En baisse de ${percentage}%`;
+    if (percentage > 0) return `En hausse de ${percentage}% sur le mois`;
+    return `En baisse de ${percentage}% sur le mois`;
 };
 
 const data = [
@@ -25,7 +25,7 @@ const data = [
         description: setDescriptionGrowOrDown(
             getDifferencePercentageByPeriod(100, 110).percentage
         ),
-        icon: IconSofa,
+        icon: SofaIcon,
         color: "bg-primary",
         borderColor: "border-primary",
     },
@@ -36,29 +36,18 @@ const data = [
         description: setDescriptionGrowOrDown(
             getDifferencePercentageByPeriod(52, 50).percentage
         ),
-        icon: IconTruck,
+        icon: TruckIcon,
         color: "bg-primary",
         borderColor: "border-primary",
     },
     {
-        title: "Matériaux",
-        value: 12,
-        percentageGrowThisMonth: getDifferencePercentageByPeriod(12, 10),
+        title: "Ressources",
+        value: 194,
+        percentageGrowThisMonth: getDifferencePercentageByPeriod(194, 190),
         description: setDescriptionGrowOrDown(
-            getDifferencePercentageByPeriod(12, 10).percentage
+            getDifferencePercentageByPeriod(194, 190).percentage
         ),
-        icon: IconRecycle,
-        color: "bg-primary",
-        borderColor: "border-primary",
-    },
-    {
-        title: "Matériaux",
-        value: 12,
-        percentageGrowThisMonth: getDifferencePercentageByPeriod(12, 10),
-        description: setDescriptionGrowOrDown(
-            getDifferencePercentageByPeriod(12, 10).percentage
-        ),
-        icon: IconSofa,
+        icon: BoxIcon,
         color: "bg-primary",
         borderColor: "border-primary",
     },
@@ -66,21 +55,23 @@ const data = [
 
 export function SectionCards() {
     return (
-        <div className="*:data-[slot=card]:from-primary/5 *:data-[slot=card]:to-card dark:*:data-[slot=card]:bg-card grid grid-cols-1 gap-4 px-4 *:data-[slot=card]:bg-gradient-to-t *:data-[slot=card]:shadow-xs lg:px-6 @xl/main:grid-cols-2 @5xl/main:grid-cols-4">
+        <div className="*:data-[slot=card]:from-primary/5 *:data-[slot=card]:to-card dark:*:data-[slot=card]:bg-card grid grid-cols-1 gap-4 px-4 *:data-[slot=card]:bg-gradient-to-t *:data-[slot=card]:shadow-xs lg:px-6 @xl/main:grid-cols-3 @5xl/main:grid-cols-3">
             {data &&
                 data.map((item) => (
                     <Card className="@container/card">
                         <CardHeader>
-                            <CardDescription>{item.title}</CardDescription>
-                            <CardTitle className="text-2xl font-semibold tabular-nums @[250px]/card:text-3xl">
+                            <CardDescription className="text-2xl">
+                                {item.title}
+                            </CardDescription>
+                            <CardTitle className="text-4xl font-semibold tabular-nums @[250px]/card:text-3xl">
                                 {item.value}
                             </CardTitle>
                             <CardAction>
                                 <Badge
-                                    variant="outline"
-                                    className="flex bg-primary text-white p-2"
+                                    variant="default"
+                                    className="bg-primary text-white p-2"
                                 >
-                                    <item.icon className="size-18" />
+                                    <item.icon className="!w-6 !h-6" />
                                 </Badge>
                             </CardAction>
                         </CardHeader>

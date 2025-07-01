@@ -7,13 +7,13 @@ import {
     IconFileWord,
     IconHelp,
     IconInnerShadowTop,
-    IconPackage,
     IconReport,
     IconSearch,
     IconSettings,
     IconSofa,
     IconUsers,
 } from "@tabler/icons-react";
+import { BrickWall } from "lucide-react";
 import * as React from "react";
 
 import { NavDocuments } from "@/components/nav-documents";
@@ -30,6 +30,8 @@ import {
     SidebarMenuItem,
 } from "@/components/ui/sidebar";
 import { useRouting } from "@/hooks/useRouting";
+import { useGetMeUserQuery } from "@/store/api/usersApi";
+import { Error } from "./Error";
 
 const data = {
     user: {
@@ -50,14 +52,14 @@ const data = {
             icon: IconSofa,
         },
         {
-            title: "Matériaux",
-            url: "/materials",
-            icon: IconPackage,
-        },
-        {
             title: "Fournisseurs",
             url: "/suppliers",
             icon: IconUsers,
+        },
+        {
+            title: "Ressources",
+            url: "/ressources",
+            icon: BrickWall,
         },
     ],
     navClouds: [
@@ -145,7 +147,27 @@ const data = {
 };
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+    //TODO : change documents tabs
+
+    //TODO : develop or remove settings, get help, search
     const { currentPath } = useRouting();
+    const {
+        data: user,
+        isLoading,
+        isError,
+        refetch: refetchMeUser,
+    } = useGetMeUserQuery();
+
+    if (isLoading) return <div>Loading...</div>;
+
+    if (isError)
+        return (
+            <Error
+                title="Erreur lors de la récupération de l'utilisateur"
+                description="Veuillez réessayer plus tard"
+                methods={refetchMeUser}
+            />
+        );
 
     return (
         <Sidebar collapsible="offcanvas" {...props}>
@@ -172,7 +194,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                 <NavSecondary items={data.navSecondary} className="mt-auto" />
             </SidebarContent>
             <SidebarFooter>
-                <NavUser user={data.user} />
+                <NavUser user={user?.user} />
             </SidebarFooter>
         </Sidebar>
     );
