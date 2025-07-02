@@ -39,6 +39,7 @@ import {
 } from "./ui/select";
 
 // API imports
+import { useGetAllFurnituresQuery } from "@/store/api/furnituresApi";
 import {
     useCreateRessourceMutation,
     useDeleteRessourceMutation,
@@ -81,6 +82,13 @@ export function RessourcesTable() {
         isLoading: isSuppliersLoading,
         isError: isSuppliersError,
     } = useGetAllSuppliersQuery();
+
+    // Récupération des meubles pour vérifier les dépendances
+    const {
+        data: furnitures,
+        isLoading: isFurnituresLoading,
+        isError: isFurnituresError,
+    } = useGetAllFurnituresQuery();
 
     // Mutations
     const [createRessource, { isLoading: isCreating_api }] =
@@ -184,12 +192,31 @@ export function RessourcesTable() {
         return colorMap[categoryName] || "bg-gray-100 text-gray-800";
     };
 
+    // Fonction pour vérifier si une ressource est utilisée dans un meuble
+    const isResourceInUse = (resourceId: string) => {
+        if (!furnitures) return false;
+
+        return furnitures.some((furniture) =>
+            furniture.ressources.some((res) => res.idRessource === resourceId)
+        );
+    };
+
     // États de chargement et d'erreur
-    if (isRessourcesLoading || isCategoriesLoading || isSuppliersLoading) {
+    if (
+        isRessourcesLoading ||
+        isCategoriesLoading ||
+        isSuppliersLoading ||
+        isFurnituresLoading
+    ) {
         return <div>Chargement des ressources...</div>;
     }
 
-    if (isRessourcesError || isCategoriesError || isSuppliersError) {
+    if (
+        isRessourcesError ||
+        isCategoriesError ||
+        isSuppliersError ||
+        isFurnituresError
+    ) {
         return (
             <Error
                 title="Erreur lors de la récupération des données"
@@ -291,6 +318,9 @@ export function RessourcesTable() {
                                     const supplierName = getSupplierName(
                                         ressource.idSupplier
                                     );
+                                    const resourceInUse = isResourceInUse(
+                                        ressource._id
+                                    );
 
                                     return (
                                         <TableRow key={ressource._id}>
@@ -358,18 +388,31 @@ export function RessourcesTable() {
                                                                 Modifier
                                                             </DropdownMenuItem>
                                                             <DropdownMenuItem
-                                                                className="cursor-pointer text-red-600"
+                                                                className={`cursor-pointer ${
+                                                                    resourceInUse
+                                                                        ? "text-gray-400"
+                                                                        : "text-red-600"
+                                                                }`}
                                                                 onClick={() =>
+                                                                    !resourceInUse &&
                                                                     handleOpenAlert(
                                                                         ressource
                                                                     )
                                                                 }
                                                                 disabled={
-                                                                    isDeleting
+                                                                    isDeleting ||
+                                                                    resourceInUse
+                                                                }
+                                                                title={
+                                                                    resourceInUse
+                                                                        ? "Cette ressource est utilisée dans un meuble et ne peut pas être supprimée"
+                                                                        : ""
                                                                 }
                                                             >
                                                                 <Trash2 className="w-4 h-4 mr-2" />
-                                                                Supprimer
+                                                                {resourceInUse
+                                                                    ? "Utilisée dans un meuble"
+                                                                    : "Supprimer"}
                                                             </DropdownMenuItem>
                                                         </DropdownMenuContent>
                                                     </DropdownMenu>

@@ -47,6 +47,7 @@ import {
 } from "@/store/api/suppliersApi";
 import type { Supplier, SupplierCreate } from "@/store/api/types/suppliersType";
 
+import { useGetAllRessourcesQuery } from "@/store/api/ressourcesApi";
 import { useGetAllRessourcesCategoriesQuery } from "@/store/api/ressourcesCategoriesApi";
 
 // Définition des catégories
@@ -83,6 +84,13 @@ export function SuppliersTable() {
         isLoading: isCategoriesLoading,
         isError: isCategoriesError,
     } = useGetAllRessourcesCategoriesQuery();
+
+    // Récupération des ressources pour vérifier les dépendances
+    const {
+        data: resources,
+        isLoading: isResourcesLoading,
+        isError: isResourcesError,
+    } = useGetAllRessourcesQuery();
 
     // Handlers pour les modales
     const handleOpenDialog = (supplier: Supplier) => {
@@ -163,12 +171,19 @@ export function SuppliersTable() {
         return category?.label || "Inconnue";
     };
 
+    // Fonction pour vérifier si un fournisseur est utilisé par des ressources
+    const isSupplierInUse = (supplierId: string) => {
+        if (!resources) return false;
+
+        return resources.some((resource) => resource.idSupplier === supplierId);
+    };
+
     // États de chargement et d'erreur
-    if (isSuppliersLoading || isCategoriesLoading) {
+    if (isSuppliersLoading || isCategoriesLoading || isResourcesLoading) {
         return <div>Chargement des fournisseurs...</div>;
     }
 
-    if (isSuppliersError || isCategoriesError) {
+    if (isSuppliersError || isCategoriesError || isResourcesError) {
         return (
             <Error
                 title="Erreur lors de la récupération des données"
@@ -344,18 +359,41 @@ export function SuppliersTable() {
                                                             Modifier
                                                         </DropdownMenuItem>
                                                         <DropdownMenuItem
-                                                            className="cursor-pointer text-red-600"
+                                                            className={`cursor-pointer ${
+                                                                isSupplierInUse(
+                                                                    supplier._id
+                                                                )
+                                                                    ? "text-gray-400"
+                                                                    : "text-red-600"
+                                                            }`}
                                                             onClick={() =>
+                                                                !isSupplierInUse(
+                                                                    supplier._id
+                                                                ) &&
                                                                 handleOpenAlert(
                                                                     supplier
                                                                 )
                                                             }
                                                             disabled={
-                                                                isDeleting
+                                                                isDeleting ||
+                                                                isSupplierInUse(
+                                                                    supplier._id
+                                                                )
+                                                            }
+                                                            title={
+                                                                isSupplierInUse(
+                                                                    supplier._id
+                                                                )
+                                                                    ? "Ce fournisseur a des ressources associées et ne peut pas être supprimé"
+                                                                    : ""
                                                             }
                                                         >
                                                             <Trash2 className="w-4 h-4 mr-2" />
-                                                            Supprimer
+                                                            {isSupplierInUse(
+                                                                supplier._id
+                                                            )
+                                                                ? "A des ressources"
+                                                                : "Supprimer"}
                                                         </DropdownMenuItem>
                                                     </DropdownMenuContent>
                                                 </DropdownMenu>
