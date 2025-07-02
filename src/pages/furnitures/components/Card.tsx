@@ -15,7 +15,7 @@ import {
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import type { Furniture } from "@/store/api/types/furnituresTypes";
-import { Edit, MoreVertical, Trash2 } from "lucide-react";
+import { Edit, Eye, MoreVertical, Trash2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 export const Card = ({
@@ -31,10 +31,7 @@ export const Card = ({
     const navigate = useNavigate();
 
     return (
-        <ShadCard
-            className="flex flex-col gap-4 cursor-pointer hover:shadow-lg transition-shadow duration-200 ease-in-out"
-            onClick={() => navigate(`/furnitures/${furniture._id}`)}
-        >
+        <ShadCard className="flex flex-col gap-4 hover:shadow-lg transition-shadow duration-200 ease-in-out">
             <CardHeader>
                 {/* <img
                     src={image || ""}
@@ -46,33 +43,33 @@ export const Card = ({
                 <div className="flex flex-row justify-between gap-2 items-center">
                     <CardTitle>{furniture.name}</CardTitle>
                     <div className="flex items-center justify-center gap-2">
+                        <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() =>
+                                navigate(`/furnitures/${furniture._id}`)
+                            }
+                            title="Voir les détails"
+                        >
+                            <Eye className="w-4 h-4" />
+                        </Button>
                         <DropdownMenu>
-                            <DropdownMenuTrigger>
-                                <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    onClick={(e) => e.stopPropagation()}
-                                >
+                            <DropdownMenuTrigger asChild>
+                                <Button variant="ghost" size="sm">
                                     <MoreVertical className="w-4 h-4" />
                                 </Button>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent>
                                 <DropdownMenuItem
                                     className="cursor-pointer"
-                                    onClick={(e) => {
-                                        e.stopPropagation();
-                                        handleOpenDialog(furniture);
-                                    }}
+                                    onClick={() => handleOpenDialog(furniture)}
                                 >
                                     <Edit className="w-4 h-4 mr-2" />
                                     Modifier
                                 </DropdownMenuItem>
                                 <DropdownMenuItem
                                     className="cursor-pointer text-red-600"
-                                    onClick={(e) => {
-                                        e.stopPropagation();
-                                        handleOpenAlert(furniture);
-                                    }}
+                                    onClick={() => handleOpenAlert(furniture)}
                                 >
                                     <Trash2 className="w-4 h-4 mr-2" />
                                     Supprimer

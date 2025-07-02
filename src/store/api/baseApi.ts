@@ -21,6 +21,7 @@ export const baseApi = createApi({
         "Ressource",
         "Supplier",
         "FurnitureCategory",
+        "RessourceCategory",
     ], // Tags pour toutes les features
     endpoints: () => ({}), // Vide - sera étendue
 });

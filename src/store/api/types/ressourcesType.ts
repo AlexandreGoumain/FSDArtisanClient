@@ -3,13 +3,14 @@ export type Ressource = {
     name: string;
     idCategory: string;
     idSupplier: string;
+    description: string;
     createdAt: string;
     updatedAt: string;
 };
 
 export type RessourceCreate = Pick<
     Ressource,
-    "name" | "idCategory" | "idSupplier"
+    "name" | "idCategory" | "idSupplier" | "description"
 >;
 
 export type RessourceUpdate = RessourceCreate & {

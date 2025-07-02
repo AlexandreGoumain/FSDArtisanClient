@@ -9,6 +9,7 @@ import {
 import { Edit, MoreHorizontal, Plus, Search, Trash2 } from "lucide-react";
 import { useState } from "react";
 
+import { Error } from "@/components/Error";
 import { Badge } from "@/components/ui/badge";
 import { SupplierModal } from "./supplier-modal";
 import {
@@ -37,76 +38,21 @@ import {
     SelectValue,
 } from "./ui/select";
 
-// Types pour les données
-interface Supplier {
-    id: string;
-    name: string;
-    contact: {
-        email: string;
-        phone: string;
-    };
-    category: {
-        name: string;
-        color: string;
-    };
-    status: "Actif" | "En attente";
-    lastOrder: string;
-    iconColor: string;
-}
+// API imports
+import {
+    useCreateSupplierMutation,
+    useDeleteSupplierMutation,
+    useGetAllSuppliersQuery,
+    useUpdateSupplierMutation,
+} from "@/store/api/suppliersApi";
+import type { Supplier, SupplierCreate } from "@/store/api/types/suppliersType";
 
-// Données d'exemple
-const suppliers: Supplier[] = [
-    {
-        id: "FRN-001",
-        name: "Mobilier Pro France",
-        contact: {
-            email: "contact@mobilierpro.fr",
-            phone: "+33 1 23 45 67 89",
-        },
-        category: {
-            name: "Bois",
-            color: "bg-blue-100 text-blue-800",
-        },
-        status: "Actif",
-        lastOrder: "2024-11-15T10:30:00",
-        iconColor: "bg-blue-500",
-    },
-    {
-        id: "FRN-002",
-        name: "Déco Salon Expert",
-        contact: {
-            email: "info@decosalon.fr",
-            phone: "+33 2 34 56 78 90",
-        },
-        category: {
-            name: "Fer",
-            color: "bg-green-100 text-green-800",
-        },
-        status: "Actif",
-        lastOrder: "2024-11-12T10:30:00",
-        iconColor: "bg-green-500",
-    },
-    {
-        id: "FRN-003",
-        name: "Chambre Design Plus",
-        contact: {
-            email: "contact@chambredesign.fr",
-            phone: "+33 3 45 67 89 01",
-        },
-        category: {
-            name: "Plastique",
-            color: "bg-purple-100 text-purple-800",
-        },
-        status: "En attente",
-        lastOrder: "2024-11-08T10:30:00",
-        iconColor: "bg-purple-500",
-    },
-];
+import { useGetAllRessourcesCategoriesQuery } from "@/store/api/ressourcesCategoriesApi";
+
+// Définition des catégories
 
 export function SuppliersTable() {
-    //TODO : work on modal modifier, add a button to open it
-    //TODO : work on modal ajouter, add a button to open it
-    //TODO : work on modal supprimer, add a button to open it and add a confirmation
+    // État local
     const [openDialog, setOpenDialog] = useState(false);
     const [openAlert, setOpenAlert] = useState(false);
     const [isCreating, setIsCreating] = useState(false);
@@ -115,8 +61,30 @@ export function SuppliersTable() {
     );
     const [searchTerm, setSearchTerm] = useState("");
     const [categoryFilter, setCategoryFilter] = useState("all");
-    const [statusFilter, setStatusFilter] = useState("all");
 
+    // Récupération des données
+    const {
+        data: suppliers,
+        isLoading: isSuppliersLoading,
+        isError: isSuppliersError,
+        refetch: refetchSuppliers,
+    } = useGetAllSuppliersQuery();
+
+    // Mutations
+    const [createSupplier, { isLoading: isCreating_api }] =
+        useCreateSupplierMutation();
+    const [updateSupplier, { isLoading: isUpdating }] =
+        useUpdateSupplierMutation();
+    const [deleteSupplier, { isLoading: isDeleting }] =
+        useDeleteSupplierMutation();
+
+    const {
+        data: resourceCategories,
+        isLoading: isCategoriesLoading,
+        isError: isCategoriesError,
+    } = useGetAllRessourcesCategoriesQuery();
+
+    // Handlers pour les modales
     const handleOpenDialog = (supplier: Supplier) => {
         setSelectedSupplier(supplier);
         setIsCreating(false);
@@ -134,48 +102,93 @@ export function SuppliersTable() {
         setOpenAlert(true);
     };
 
-    const handleDeleteSupplier = () => {
-        console.log("Suppression du fournisseur:", selectedSupplier?.name);
-        setOpenAlert(false);
-        setSelectedSupplier(null);
-    };
+    // Opération de suppression
+    const handleDeleteSupplier = async () => {
+        if (!selectedSupplier) return;
 
-    const handleSaveSupplier = (supplierData: Partial<Supplier>) => {
-        if (isCreating) {
-            const newSupplier = {
-                id: `FRN-00${suppliers.length + 1}`,
-                ...supplierData,
-            };
-            console.log("Nouveau fournisseur créé:", newSupplier);
-            // Ici vous pouvez ajouter la logique de création (API call, etc.)
-        } else {
-            const updatedSupplier = {
-                ...selectedSupplier!,
-                ...supplierData,
-            };
-            console.log("Fournisseur mis à jour:", updatedSupplier);
-            // Ici vous pouvez ajouter la logique de modification (API call, etc.)
+        try {
+            await deleteSupplier(selectedSupplier._id).unwrap();
+            console.log(
+                "Fournisseur supprimé avec succès:",
+                selectedSupplier.name
+            );
+        } catch (error) {
+            console.error("Erreur lors de la suppression:", error);
+        } finally {
+            setOpenAlert(false);
+            setSelectedSupplier(null);
         }
-
-        setOpenDialog(false);
-        setSelectedSupplier(null);
-        setIsCreating(false);
     };
+
+    // Opération de sauvegarde (création/mise à jour)
+    const handleSaveSupplier = async (supplierData: Partial<Supplier>) => {
+        try {
+            if (isCreating) {
+                // Créer un nouveau fournisseur
+                const newSupplierData: SupplierCreate = {
+                    name: supplierData.name || "",
+                    email: supplierData.email || "",
+                    phone: supplierData.phone || "",
+                };
+
+                await createSupplier(newSupplierData).unwrap();
+                console.log("Nouveau fournisseur créé avec succès");
+            } else {
+                // Mettre à jour un fournisseur existant
+                if (!selectedSupplier) return;
+
+                const updatedSupplierData = {
+                    _id: selectedSupplier._id,
+                    name: supplierData.name || selectedSupplier.name,
+                    email: supplierData.email || selectedSupplier.email,
+                    phone: supplierData.phone || selectedSupplier.phone,
+                };
+
+                await updateSupplier(updatedSupplierData).unwrap();
+                console.log("Fournisseur mis à jour avec succès");
+            }
+        } catch (error) {
+            console.error("Erreur lors de la sauvegarde:", error);
+        } finally {
+            setOpenDialog(false);
+            setSelectedSupplier(null);
+            setIsCreating(false);
+        }
+    };
+
+    // Fonction pour obtenir le nom d'une catégorie par son ID
+    const getCategoryName = (categoryId: string) => {
+        const category = resourceCategories?.find(
+            (cat) => cat._id === categoryId
+        );
+        return category?.label || "Inconnue";
+    };
+
+    // États de chargement et d'erreur
+    if (isSuppliersLoading || isCategoriesLoading) {
+        return <div>Chargement des fournisseurs...</div>;
+    }
+
+    if (isSuppliersError || isCategoriesError) {
+        return (
+            <Error
+                title="Erreur lors de la récupération des données"
+                description="Veuillez réessayer plus tard"
+                methods={refetchSuppliers}
+            />
+        );
+    }
 
     // Filtrer les fournisseurs
-    const filteredSuppliers = suppliers.filter((supplier) => {
+    const filteredSuppliers = (suppliers || []).filter((supplier) => {
         const matchesSearch =
             supplier.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            supplier.contact.email
-                .toLowerCase()
-                .includes(searchTerm.toLowerCase());
+            supplier.email.toLowerCase().includes(searchTerm.toLowerCase());
         const matchesCategory =
             categoryFilter === "all" ||
-            supplier.category.name === categoryFilter;
-        const matchesStatus =
-            statusFilter === "all" || supplier.status === statusFilter;
+            supplier.ressourceCategories.includes(categoryFilter);
 
-        return matchesSearch && matchesCategory && matchesStatus;
+        return matchesSearch && matchesCategory;
     });
 
     return (
@@ -185,8 +198,11 @@ export function SuppliersTable() {
                     <h2 className="text-xl font-semibold">
                         Tous les fournisseurs
                     </h2>
-                    <Button onClick={handleOpenCreateDialog}>
-                        Ajouter
+                    <Button
+                        onClick={handleOpenCreateDialog}
+                        disabled={isCreating_api}
+                    >
+                        {isCreating_api ? "Création..." : "Ajouter"}
                         <Plus className="w-4 h-4" />
                     </Button>
                 </div>
@@ -212,26 +228,14 @@ export function SuppliersTable() {
                             <SelectItem value="all">
                                 Toutes les catégories
                             </SelectItem>
-                            <SelectItem value="Bois">Bois</SelectItem>
-                            <SelectItem value="Fer">Fer</SelectItem>
-                            <SelectItem value="Plastique">Plastique</SelectItem>
-                        </SelectContent>
-                    </Select>
-                    <Select
-                        value={statusFilter}
-                        onValueChange={setStatusFilter}
-                    >
-                        <SelectTrigger>
-                            <SelectValue placeholder="Tous les statuts" />
-                        </SelectTrigger>
-                        <SelectContent>
-                            <SelectItem value="all">
-                                Tous les statuts
-                            </SelectItem>
-                            <SelectItem value="Actif">Actif</SelectItem>
-                            <SelectItem value="En attente">
-                                En attente
-                            </SelectItem>
+                            {resourceCategories?.map((category) => (
+                                <SelectItem
+                                    key={category._id}
+                                    value={category._id}
+                                >
+                                    {category.label}
+                                </SelectItem>
+                            ))}
                         </SelectContent>
                     </Select>
                 </div>
@@ -242,124 +246,125 @@ export function SuppliersTable() {
                             <TableRow>
                                 <TableHead>Fournisseur</TableHead>
                                 <TableHead>Contact</TableHead>
-                                <TableHead>Catégorie</TableHead>
-                                <TableHead>Statut</TableHead>
-                                <TableHead>Dernière commande</TableHead>
+                                <TableHead>Catégories de ressources</TableHead>
                                 <TableHead className="text-center">
                                     Actions
                                 </TableHead>
                             </TableRow>
                         </TableHeader>
                         <TableBody>
-                            {filteredSuppliers.map((supplier) => (
-                                <TableRow key={supplier.id}>
-                                    <TableCell>
-                                        <div className="flex items-center gap-3">
-                                            <div
-                                                className={`w-8 h-8 rounded ${supplier.iconColor} flex items-center justify-center`}
-                                            >
-                                                <div className="w-4 h-4 bg-white rounded-sm"></div>
-                                            </div>
-                                            <div>
-                                                <div className="font-medium">
-                                                    {supplier.name}
-                                                </div>
-                                                <div className="text-sm text-muted-foreground">
-                                                    ID: {supplier.id}
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </TableCell>
-                                    <TableCell>
-                                        <div className="space-y-1">
-                                            <div className="text-sm">
-                                                {supplier.contact.email}
-                                            </div>
-                                            <div className="text-sm text-muted-foreground">
-                                                {supplier.contact.phone}
-                                            </div>
-                                        </div>
-                                    </TableCell>
-                                    <TableCell>
-                                        <Badge
-                                            variant="secondary"
-                                            className={supplier.category.color}
-                                        >
-                                            {supplier.category.name}
-                                        </Badge>
-                                    </TableCell>
-                                    <TableCell>
-                                        <Badge
-                                            variant={
-                                                supplier.status === "Actif"
-                                                    ? "default"
-                                                    : "secondary"
-                                            }
-                                            className={
-                                                supplier.status === "Actif"
-                                                    ? "bg-green-100 text-green-800"
-                                                    : "bg-yellow-100 text-yellow-800"
-                                            }
-                                        >
-                                            {supplier.status}
-                                        </Badge>
-                                    </TableCell>
-                                    <TableCell className="text-sm text-muted-foreground">
-                                        {new Date(
-                                            supplier.lastOrder
-                                        ).toLocaleDateString("fr-FR", {
-                                            day: "2-digit",
-                                            month: "2-digit",
-                                            year: "numeric",
-                                        })}
-                                        {" - "}
-                                        {new Date(
-                                            supplier.lastOrder
-                                        ).toLocaleTimeString("fr-FR", {
-                                            hour: "2-digit",
-                                            minute: "2-digit",
-                                        })}
-                                    </TableCell>
-                                    <TableCell>
-                                        <div className="flex items-center justify-center gap-2">
-                                            <DropdownMenu>
-                                                <DropdownMenuTrigger>
-                                                    <Button
-                                                        variant="ghost"
-                                                        size="sm"
-                                                    >
-                                                        <MoreHorizontal className="w-4 h-4" />
-                                                    </Button>
-                                                </DropdownMenuTrigger>
-                                                <DropdownMenuContent>
-                                                    <DropdownMenuItem
-                                                        className="cursor-pointer"
-                                                        onClick={() =>
-                                                            handleOpenDialog(
-                                                                supplier
-                                                            )
-                                                        }
-                                                    >
-                                                        <Edit className="w-4 h-4 mr-2" />
-                                                        Modifier
-                                                    </DropdownMenuItem>
-                                                    <DropdownMenuItem
-                                                        className="cursor-pointer text-red-600"
-                                                        onClick={() =>
-                                                            handleOpenAlert(
-                                                                supplier
-                                                            )
-                                                        }
-                                                    >
-                                                        <Trash2 className="w-4 h-4 mr-2" />
-                                                        Supprimer
-                                                    </DropdownMenuItem>
-                                                </DropdownMenuContent>
-                                            </DropdownMenu>
-                                        </div>
+                            {filteredSuppliers.length === 0 ? (
+                                <TableRow>
+                                    <TableCell
+                                        colSpan={4}
+                                        className="text-center py-8 text-muted-foreground"
+                                    >
+                                        Aucun fournisseur trouvé
                                     </TableCell>
                                 </TableRow>
-                            ))}
+                            ) : (
+                                filteredSuppliers.map((supplier) => (
+                                    <TableRow key={supplier._id}>
+                                        <TableCell>
+                                            <div className="flex items-center gap-3">
+                                                <div className="w-8 h-8 rounded bg-blue-500 flex items-center justify-center">
+                                                    <div className="w-4 h-4 bg-white rounded-sm"></div>
+                                                </div>
+                                                <div>
+                                                    <div className="font-medium">
+                                                        {supplier.name}
+                                                    </div>
+                                                    <div className="text-sm text-muted-foreground">
+                                                        ID:{" "}
+                                                        {supplier._id.slice(-8)}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </TableCell>
+                                        <TableCell>
+                                            <div className="space-y-1">
+                                                <div className="text-sm">
+                                                    {supplier.email}
+                                                </div>
+                                                <div className="text-sm text-muted-foreground">
+                                                    {supplier.phone}
+                                                </div>
+                                            </div>
+                                        </TableCell>
+                                        <TableCell>
+                                            <div className="flex flex-wrap gap-1">
+                                                {supplier.ressourceCategories
+                                                    .length === 0 ? (
+                                                    <span className="text-sm text-muted-foreground">
+                                                        Aucune catégorie
+                                                    </span>
+                                                ) : (
+                                                    supplier.ressourceCategories.map(
+                                                        (categoryId) => (
+                                                            <Badge
+                                                                key={categoryId}
+                                                                className="text-xs"
+                                                            >
+                                                                {getCategoryName(
+                                                                    categoryId
+                                                                )}
+                                                            </Badge>
+                                                        )
+                                                    )
+                                                )}
+                                            </div>
+                                        </TableCell>
+                                        <TableCell>
+                                            <div className="flex items-center justify-center gap-2">
+                                                <DropdownMenu>
+                                                    <DropdownMenuTrigger>
+                                                        <Button
+                                                            variant="ghost"
+                                                            size="sm"
+                                                            disabled={
+                                                                isUpdating ||
+                                                                isDeleting
+                                                            }
+                                                        >
+                                                            <MoreHorizontal className="w-4 h-4" />
+                                                        </Button>
+                                                    </DropdownMenuTrigger>
+                                                    <DropdownMenuContent>
+                                                        <DropdownMenuItem
+                                                            className="cursor-pointer"
+                                                            onClick={() =>
+                                                                handleOpenDialog(
+                                                                    supplier
+                                                                )
+                                                            }
+                                                            disabled={
+                                                                isUpdating
+                                                            }
+                                                        >
+                                                            <Edit className="w-4 h-4 mr-2" />
+                                                            Modifier
+                                                        </DropdownMenuItem>
+                                                        <DropdownMenuItem
+                                                            className="cursor-pointer text-red-600"
+                                                            onClick={() =>
+                                                                handleOpenAlert(
+                                                                    supplier
+                                                                )
+                                                            }
+                                                            disabled={
+                                                                isDeleting
+                                                            }
+                                                        >
+                                                            <Trash2 className="w-4 h-4 mr-2" />
+                                                            Supprimer
+                                                        </DropdownMenuItem>
+                                                    </DropdownMenuContent>
+                                                </DropdownMenu>
+                                            </div>
+                                        </TableCell>
+                                    </TableRow>
+                                ))
+                            )}
                         </TableBody>
                     </Table>
                 </div>
@@ -393,9 +398,10 @@ export function SuppliersTable() {
                         <AlertDialogAction
                             onClick={handleDeleteSupplier}
                             className="bg-red-600 hover:bg-red-700"
+                            disabled={isDeleting}
                         >
                             <Trash2 className="w-4 h-4 mr-2" />
-                            Supprimer
+                            {isDeleting ? "Suppression..." : "Supprimer"}
                         </AlertDialogAction>
                     </AlertDialogFooter>
                 </AlertDialogContent>

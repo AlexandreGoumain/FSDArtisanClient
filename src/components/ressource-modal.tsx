@@ -16,20 +16,10 @@ import {
     SelectValue,
 } from "@/components/ui/select";
 
+import { useGetAllRessourcesCategoriesQuery } from "@/store/api/ressourcesCategoriesApi";
+import { useGetAllSuppliersQuery } from "@/store/api/suppliersApi";
+import type { Ressource } from "@/store/api/types/ressourcesType";
 import { useEffect, useState } from "react";
-
-// Types
-interface Ressource {
-    id: string;
-    name: string;
-    category: {
-        name: string;
-        color: string;
-    };
-    quantity: number;
-    unit: string;
-    iconColor: string;
-}
 
 interface RessourceModalProps {
     open: boolean;
@@ -39,26 +29,6 @@ interface RessourceModalProps {
     onSave: (ressourceData: Partial<Ressource>) => void;
 }
 
-const categoryOptions = [
-    { name: "Bois", color: "bg-blue-100 text-blue-800" },
-    { name: "Fer", color: "bg-green-100 text-green-800" },
-    { name: "Plastique", color: "bg-purple-100 text-purple-800" },
-    { name: "Quincaillerie", color: "bg-orange-100 text-orange-800" },
-];
-
-const unitOptions = ["unité", "m²", "m³", "kg", "litre", "tonne", "lot"];
-
-const iconColors = [
-    "bg-blue-500",
-    "bg-green-500",
-    "bg-purple-500",
-    "bg-orange-500",
-    "bg-red-500",
-    "bg-yellow-500",
-    "bg-pink-500",
-    "bg-indigo-500",
-];
-
 export function RessourceModal({
     open,
     onOpenChange,
@@ -67,22 +37,35 @@ export function RessourceModal({
     onSave,
 }: RessourceModalProps) {
     const [name, setName] = useState("");
-    const [categoryName, setCategoryName] = useState("");
-    const [quantity, setQuantity] = useState(0);
-    const [unit, setUnit] = useState("");
+    const [categoryId, setCategoryId] = useState("");
+    const [supplierId, setSupplierId] = useState("");
+    const [description, setDescription] = useState("");
+
+    // Récupération des catégories et suppliers
+    const {
+        data: categories,
+        isLoading: isCategoriesLoading,
+        isError: isCategoriesError,
+    } = useGetAllRessourcesCategoriesQuery();
+
+    const {
+        data: suppliers,
+        isLoading: isSuppliersLoading,
+        isError: isSuppliersError,
+    } = useGetAllSuppliersQuery();
 
     // Charger les informations de la ressource (modification) ou réinitialiser (création)
     useEffect(() => {
         if (selectedRessource && open && !isCreating) {
             setName(selectedRessource.name);
-            setCategoryName(selectedRessource.category.name);
-            setQuantity(selectedRessource.quantity);
-            setUnit(selectedRessource.unit);
+            setCategoryId(selectedRessource.idCategory);
+            setSupplierId(selectedRessource.idSupplier);
+            setDescription(selectedRessource.description);
         } else if (open && isCreating) {
             setName("");
-            setCategoryName("Bois");
-            setQuantity(0);
-            setUnit("unité");
+            setCategoryId("");
+            setSupplierId("");
+            setDescription("");
         }
     }, [selectedRessource, open, isCreating]);
 
@@ -91,24 +74,26 @@ export function RessourceModal({
         setName(e.target.value);
     };
 
-    const handleQuantityChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const value = parseInt(e.target.value) || 0;
-        setQuantity(value);
+    const handleCategoryChange = (value: string) => {
+        setCategoryId(value);
+    };
+
+    const handleSupplierChange = (value: string) => {
+        setSupplierId(value);
+    };
+
+    const handleDescriptionChange = (
+        e: React.ChangeEvent<HTMLInputElement>
+    ) => {
+        setDescription(e.target.value);
     };
 
     const handleSave = () => {
-        const selectedCategory = categoryOptions.find(
-            (cat) => cat.name === categoryName
-        );
-        const randomIconColor =
-            iconColors[Math.floor(Math.random() * iconColors.length)];
-
         const ressourceData = {
             name,
-            category: selectedCategory || categoryOptions[0],
-            quantity,
-            unit,
-            iconColor: selectedRessource?.iconColor || randomIconColor,
+            idCategory: categoryId,
+            idSupplier: supplierId,
+            description,
         };
 
         onSave(ressourceData);
@@ -117,7 +102,7 @@ export function RessourceModal({
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogContent className="max-w-md">
+            <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
                 <DialogHeader>
                     <DialogTitle>
                         {isCreating
@@ -141,56 +126,82 @@ export function RessourceModal({
                             placeholder="Ex: Planches de chêne"
                         />
                     </div>
+                    <div className="space-y-2">
+                        <Label htmlFor="description">Description</Label>
+                        <Input
+                            id="description"
+                            value={description}
+                            onChange={handleDescriptionChange}
+                            placeholder="Ex: De 2m à 4m"
+                        />
+                    </div>
 
                     <div className="space-y-2">
                         <Label>Catégorie</Label>
                         <Select
-                            value={categoryName}
-                            onValueChange={setCategoryName}
+                            value={categoryId}
+                            onValueChange={handleCategoryChange}
+                            disabled={isCategoriesLoading}
                         >
                             <SelectTrigger>
                                 <SelectValue placeholder="Sélectionner une catégorie" />
                             </SelectTrigger>
                             <SelectContent>
-                                {categoryOptions.map((category) => (
-                                    <SelectItem
-                                        key={category.name}
-                                        value={category.name}
-                                    >
-                                        {category.name}
+                                {!isCategoriesLoading &&
+                                    !isCategoriesError &&
+                                    categories?.map((category) => (
+                                        <SelectItem
+                                            key={category._id}
+                                            value={category._id}
+                                        >
+                                            {category.label}
+                                        </SelectItem>
+                                    ))}
+                                {isCategoriesLoading && (
+                                    <SelectItem value="" disabled>
+                                        Chargement...
                                     </SelectItem>
-                                ))}
+                                )}
+                                {isCategoriesError && (
+                                    <SelectItem value="" disabled>
+                                        Erreur de chargement
+                                    </SelectItem>
+                                )}
                             </SelectContent>
                         </Select>
                     </div>
 
                     <div className="space-y-2">
-                        <Label htmlFor="quantity">Quantité</Label>
-                        <Input
-                            id="quantity"
-                            type="number"
-                            min="0"
-                            value={quantity}
-                            onChange={handleQuantityChange}
-                            placeholder="0"
-                        />
-                    </div>
-
-                    <div className="space-y-2">
-                        <Label>Unité</Label>
-                        <Select value={unit} onValueChange={setUnit}>
+                        <Label>Fournisseur</Label>
+                        <Select
+                            value={supplierId}
+                            onValueChange={handleSupplierChange}
+                            disabled={isSuppliersLoading}
+                        >
                             <SelectTrigger>
-                                <SelectValue placeholder="Sélectionner une unité" />
+                                <SelectValue placeholder="Sélectionner un fournisseur" />
                             </SelectTrigger>
                             <SelectContent>
-                                {unitOptions.map((unitOption) => (
-                                    <SelectItem
-                                        key={unitOption}
-                                        value={unitOption}
-                                    >
-                                        {unitOption}
+                                {!isSuppliersLoading &&
+                                    !isSuppliersError &&
+                                    suppliers?.map((supplier) => (
+                                        <SelectItem
+                                            key={supplier._id}
+                                            value={supplier._id}
+                                        >
+                                            {supplier.name}
+                                        </SelectItem>
+                                    ))}
+                                {isSuppliersLoading && (
+                                    <SelectItem value="" disabled>
+                                        Chargement des fournisseurs...
                                     </SelectItem>
-                                ))}
+                                )}
+                                {isSuppliersError && (
+                                    <SelectItem value="" disabled>
+                                        Erreur de chargement des fournisseurs
+                                    </SelectItem>
+                                )}
                             </SelectContent>
                         </Select>
                     </div>

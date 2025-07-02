@@ -9,6 +9,7 @@ import {
 import { Edit, MoreHorizontal, Plus, Search, Trash2 } from "lucide-react";
 import { useState } from "react";
 
+import { Error } from "@/components/Error";
 import { Badge } from "@/components/ui/badge";
 import { RessourceModal } from "./ressource-modal";
 import {
@@ -37,71 +38,22 @@ import {
     SelectValue,
 } from "./ui/select";
 
-// Types pour les données
-interface Ressource {
-    id: string;
-    name: string;
-    category: {
-        name: string;
-        color: string;
-    };
-    quantity: number;
-    unit: string;
-    iconColor: string;
-}
-
-// Données d'exemple
-const ressources: Ressource[] = [
-    {
-        id: "RES-001",
-        name: "Planches de chêne",
-        category: {
-            name: "Bois",
-            color: "bg-blue-100 text-blue-800",
-        },
-        quantity: 150,
-        unit: "m²",
-        iconColor: "bg-blue-500",
-    },
-    {
-        id: "RES-002",
-        name: "Tubes d'acier",
-        category: {
-            name: "Fer",
-            color: "bg-green-100 text-green-800",
-        },
-        quantity: 75,
-        unit: "unité",
-        iconColor: "bg-green-500",
-    },
-    {
-        id: "RES-003",
-        name: "Plaques PVC",
-        category: {
-            name: "Plastique",
-            color: "bg-purple-100 text-purple-800",
-        },
-        quantity: 200,
-        unit: "m²",
-        iconColor: "bg-purple-500",
-    },
-    {
-        id: "RES-004",
-        name: "Vis en acier",
-        category: {
-            name: "Quincaillerie",
-            color: "bg-orange-100 text-orange-800",
-        },
-        quantity: 500,
-        unit: "unité",
-        iconColor: "bg-orange-500",
-    },
-];
+// API imports
+import {
+    useCreateRessourceMutation,
+    useDeleteRessourceMutation,
+    useGetAllRessourcesQuery,
+    useUpdateRessourceMutation,
+} from "@/store/api/ressourcesApi";
+import { useGetAllRessourcesCategoriesQuery } from "@/store/api/ressourcesCategoriesApi";
+import { useGetAllSuppliersQuery } from "@/store/api/suppliersApi";
+import type {
+    Ressource,
+    RessourceCreate,
+} from "@/store/api/types/ressourcesType";
 
 export function RessourcesTable() {
-    //TODO : work on modal modifier, add a button to open it
-    //TODO : work on modal ajouter, add a button to open it
-    //TODO : work on modal supprimer, add a button to open it and add a confirmation
+    // État local
     const [openDialog, setOpenDialog] = useState(false);
     const [openAlert, setOpenAlert] = useState(false);
     const [isCreating, setIsCreating] = useState(false);
@@ -110,6 +62,35 @@ export function RessourcesTable() {
     const [searchTerm, setSearchTerm] = useState("");
     const [categoryFilter, setCategoryFilter] = useState("all");
 
+    // Récupération des données
+    const {
+        data: ressources,
+        isLoading: isRessourcesLoading,
+        isError: isRessourcesError,
+        refetch: refetchRessources,
+    } = useGetAllRessourcesQuery();
+
+    const {
+        data: categories,
+        isLoading: isCategoriesLoading,
+        isError: isCategoriesError,
+    } = useGetAllRessourcesCategoriesQuery();
+
+    const {
+        data: suppliers,
+        isLoading: isSuppliersLoading,
+        isError: isSuppliersError,
+    } = useGetAllSuppliersQuery();
+
+    // Mutations
+    const [createRessource, { isLoading: isCreating_api }] =
+        useCreateRessourceMutation();
+    const [updateRessource, { isLoading: isUpdating }] =
+        useUpdateRessourceMutation();
+    const [deleteRessource, { isLoading: isDeleting }] =
+        useDeleteRessourceMutation();
+
+    // Handlers pour les modales
     const handleOpenDialog = (ressource: Ressource) => {
         setSelectedRessource(ressource);
         setIsCreating(false);
@@ -127,42 +108,110 @@ export function RessourcesTable() {
         setOpenAlert(true);
     };
 
-    const handleDeleteRessource = () => {
-        console.log("Suppression de la ressource:", selectedRessource?.name);
-        setOpenAlert(false);
-        setSelectedRessource(null);
-    };
+    // Opération de suppression
+    const handleDeleteRessource = async () => {
+        if (!selectedRessource) return;
 
-    const handleSaveRessource = (ressourceData: Partial<Ressource>) => {
-        if (isCreating) {
-            const newRessource = {
-                id: `RES-00${ressources.length + 1}`,
-                ...ressourceData,
-            };
-            console.log("Nouvelle ressource créée:", newRessource);
-            // Ici vous pouvez ajouter la logique de création (API call, etc.)
-        } else {
-            const updatedRessource = {
-                ...selectedRessource!,
-                ...ressourceData,
-            };
-            console.log("Ressource mise à jour:", updatedRessource);
-            // Ici vous pouvez ajouter la logique de modification (API call, etc.)
+        try {
+            await deleteRessource(selectedRessource._id).unwrap();
+            console.log(
+                "Ressource supprimée avec succès:",
+                selectedRessource.name
+            );
+        } catch (error) {
+            console.error("Erreur lors de la suppression:", error);
+        } finally {
+            setOpenAlert(false);
+            setSelectedRessource(null);
         }
-
-        setOpenDialog(false);
-        setSelectedRessource(null);
-        setIsCreating(false);
     };
+
+    // Opération de sauvegarde (création/mise à jour)
+    const handleSaveRessource = async (ressourceData: Partial<Ressource>) => {
+        try {
+            if (isCreating) {
+                // Créer une nouvelle ressource
+                const newRessourceData: RessourceCreate = {
+                    name: ressourceData.name || "",
+                    idCategory: ressourceData.idCategory || "",
+                    idSupplier: ressourceData.idSupplier || "",
+                    description: ressourceData.description || "",
+                };
+
+                await createRessource(newRessourceData).unwrap();
+                console.log("Nouvelle ressource créée avec succès");
+            } else {
+                // Mettre à jour une ressource existante
+                if (!selectedRessource) return;
+
+                const updatedRessourceData = {
+                    _id: selectedRessource._id,
+                    name: ressourceData.name || selectedRessource.name,
+                    idCategory:
+                        ressourceData.idCategory ||
+                        selectedRessource.idCategory,
+                    idSupplier:
+                        ressourceData.idSupplier ||
+                        selectedRessource.idSupplier,
+                    description: ressourceData.description || "",
+                };
+
+                await updateRessource(updatedRessourceData).unwrap();
+                console.log("Ressource mise à jour avec succès");
+            }
+        } catch (error) {
+            console.error("Erreur lors de la sauvegarde:", error);
+        } finally {
+            setOpenDialog(false);
+            setSelectedRessource(null);
+            setIsCreating(false);
+        }
+    };
+
+    // Fonction pour obtenir le nom de la catégorie
+    const getCategoryName = (idCategory: string) => {
+        const category = categories?.find((cat) => cat._id === idCategory);
+        return category?.label || "Catégorie inconnue";
+    };
+
+    // Fonction pour obtenir le nom du fournisseur
+    const getSupplierName = (idSupplier: string) => {
+        const supplier = suppliers?.find((sup) => sup._id === idSupplier);
+        return supplier?.name || "Fournisseur inconnu";
+    };
+
+    // Fonction pour obtenir la couleur de la catégorie (basée sur le nom)
+    const getCategoryColor = (categoryName: string) => {
+        const colorMap: { [key: string]: string } = {
+            Bois: "bg-blue-100 text-blue-800",
+            Fer: "bg-green-100 text-green-800",
+            Plastique: "bg-purple-100 text-purple-800",
+        };
+        return colorMap[categoryName] || "bg-gray-100 text-gray-800";
+    };
+
+    // États de chargement et d'erreur
+    if (isRessourcesLoading || isCategoriesLoading || isSuppliersLoading) {
+        return <div>Chargement des ressources...</div>;
+    }
+
+    if (isRessourcesError || isCategoriesError || isSuppliersError) {
+        return (
+            <Error
+                title="Erreur lors de la récupération des données"
+                description="Veuillez réessayer plus tard"
+                methods={refetchRessources}
+            />
+        );
+    }
 
     // Filtrer les ressources
-    const filteredRessources = ressources.filter((ressource) => {
+    const filteredRessources = (ressources || []).filter((ressource) => {
         const matchesSearch = ressource.name
             .toLowerCase()
             .includes(searchTerm.toLowerCase());
         const matchesCategory =
-            categoryFilter === "all" ||
-            ressource.category.name === categoryFilter;
+            categoryFilter === "all" || ressource.idCategory === categoryFilter;
 
         return matchesSearch && matchesCategory;
     });
@@ -174,8 +223,11 @@ export function RessourcesTable() {
                     <h2 className="text-xl font-semibold">
                         Toutes les ressources
                     </h2>
-                    <Button onClick={handleOpenCreateDialog}>
-                        Ajouter
+                    <Button
+                        onClick={handleOpenCreateDialog}
+                        disabled={isCreating_api}
+                    >
+                        {isCreating_api ? "Création..." : "Ajouter"}
                         <Plus className="w-4 h-4" />
                     </Button>
                 </div>
@@ -193,6 +245,7 @@ export function RessourcesTable() {
                     <Select
                         value={categoryFilter}
                         onValueChange={setCategoryFilter}
+                        disabled={isCategoriesError}
                     >
                         <SelectTrigger>
                             <SelectValue placeholder="Toutes les catégories" />
@@ -201,12 +254,15 @@ export function RessourcesTable() {
                             <SelectItem value="all">
                                 Toutes les catégories
                             </SelectItem>
-                            <SelectItem value="Bois">Bois</SelectItem>
-                            <SelectItem value="Fer">Fer</SelectItem>
-                            <SelectItem value="Plastique">Plastique</SelectItem>
-                            <SelectItem value="Quincaillerie">
-                                Quincaillerie
-                            </SelectItem>
+                            {!isCategoriesError &&
+                                categories?.map((category) => (
+                                    <SelectItem
+                                        key={category._id}
+                                        value={category._id}
+                                    >
+                                        {category.label}
+                                    </SelectItem>
+                                ))}
                         </SelectContent>
                     </Select>
                 </div>
@@ -217,91 +273,118 @@ export function RessourcesTable() {
                             <TableRow>
                                 <TableHead>Nom</TableHead>
                                 <TableHead>Catégorie</TableHead>
-                                <TableHead>Quantité</TableHead>
-                                <TableHead>Unité</TableHead>
+                                <TableHead>Fournisseur</TableHead>
                                 <TableHead className="text-center">
                                     Actions
                                 </TableHead>
                             </TableRow>
                         </TableHeader>
                         <TableBody>
-                            {filteredRessources.map((ressource) => (
-                                <TableRow key={ressource.id}>
-                                    <TableCell>
-                                        <div className="flex items-center gap-3">
-                                            <div
-                                                className={`w-8 h-8 rounded ${ressource.iconColor} flex items-center justify-center`}
-                                            >
-                                                <div className="w-4 h-4 bg-white rounded-sm"></div>
-                                            </div>
-                                            <div>
-                                                <div className="font-medium">
-                                                    {ressource.name}
-                                                </div>
-                                                <div className="text-sm text-muted-foreground">
-                                                    ID: {ressource.id}
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </TableCell>
-                                    <TableCell>
-                                        <Badge
-                                            variant="secondary"
-                                            className={ressource.category.color}
-                                        >
-                                            {ressource.category.name}
-                                        </Badge>
-                                    </TableCell>
-                                    <TableCell>
-                                        <div className="font-medium text-lg">
-                                            {ressource.quantity}
-                                        </div>
-                                    </TableCell>
-                                    <TableCell>
-                                        <div className="font-medium text-lg">
-                                            {ressource.unit}
-                                        </div>
-                                    </TableCell>
-                                    <TableCell>
-                                        <div className="flex items-center justify-center gap-2">
-                                            <DropdownMenu>
-                                                <DropdownMenuTrigger>
-                                                    <Button
-                                                        variant="ghost"
-                                                        size="sm"
-                                                    >
-                                                        <MoreHorizontal className="w-4 h-4" />
-                                                    </Button>
-                                                </DropdownMenuTrigger>
-                                                <DropdownMenuContent>
-                                                    <DropdownMenuItem
-                                                        className="cursor-pointer"
-                                                        onClick={() =>
-                                                            handleOpenDialog(
-                                                                ressource
-                                                            )
-                                                        }
-                                                    >
-                                                        <Edit className="w-4 h-4 mr-2" />
-                                                        Modifier
-                                                    </DropdownMenuItem>
-                                                    <DropdownMenuItem
-                                                        className="cursor-pointer text-red-600"
-                                                        onClick={() =>
-                                                            handleOpenAlert(
-                                                                ressource
-                                                            )
-                                                        }
-                                                    >
-                                                        <Trash2 className="w-4 h-4 mr-2" />
-                                                        Supprimer
-                                                    </DropdownMenuItem>
-                                                </DropdownMenuContent>
-                                            </DropdownMenu>
-                                        </div>
+                            {filteredRessources.length === 0 ? (
+                                <TableRow>
+                                    <TableCell
+                                        colSpan={4}
+                                        className="text-center py-8 text-muted-foreground"
+                                    >
+                                        Aucune ressource trouvée
                                     </TableCell>
                                 </TableRow>
-                            ))}
+                            ) : (
+                                filteredRessources.map((ressource) => {
+                                    const categoryName = getCategoryName(
+                                        ressource.idCategory
+                                    );
+                                    const supplierName = getSupplierName(
+                                        ressource.idSupplier
+                                    );
+
+                                    return (
+                                        <TableRow key={ressource._id}>
+                                            <TableCell>
+                                                <div className="flex items-center gap-3">
+                                                    <div className="w-8 h-8 rounded bg-blue-500 flex items-center justify-center">
+                                                        <div className="w-4 h-4 bg-white rounded-sm"></div>
+                                                    </div>
+                                                    <div>
+                                                        <div className="font-medium">
+                                                            {ressource.name}
+                                                        </div>
+                                                        <div className="text-sm text-muted-foreground">
+                                                            ID:{" "}
+                                                            {ressource._id.slice(
+                                                                -8
+                                                            )}
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </TableCell>
+                                            <TableCell>
+                                                <Badge
+                                                    variant="secondary"
+                                                    className={getCategoryColor(
+                                                        categoryName
+                                                    )}
+                                                >
+                                                    {categoryName}
+                                                </Badge>
+                                            </TableCell>
+                                            <TableCell>
+                                                <span className="text-sm">
+                                                    {supplierName}
+                                                </span>
+                                            </TableCell>
+                                            <TableCell>
+                                                <div className="flex items-center justify-center gap-2">
+                                                    <DropdownMenu>
+                                                        <DropdownMenuTrigger>
+                                                            <Button
+                                                                variant="ghost"
+                                                                size="sm"
+                                                                disabled={
+                                                                    isUpdating ||
+                                                                    isDeleting
+                                                                }
+                                                            >
+                                                                <MoreHorizontal className="w-4 h-4" />
+                                                            </Button>
+                                                        </DropdownMenuTrigger>
+                                                        <DropdownMenuContent>
+                                                            <DropdownMenuItem
+                                                                className="cursor-pointer"
+                                                                onClick={() =>
+                                                                    handleOpenDialog(
+                                                                        ressource
+                                                                    )
+                                                                }
+                                                                disabled={
+                                                                    isUpdating
+                                                                }
+                                                            >
+                                                                <Edit className="w-4 h-4 mr-2" />
+                                                                Modifier
+                                                            </DropdownMenuItem>
+                                                            <DropdownMenuItem
+                                                                className="cursor-pointer text-red-600"
+                                                                onClick={() =>
+                                                                    handleOpenAlert(
+                                                                        ressource
+                                                                    )
+                                                                }
+                                                                disabled={
+                                                                    isDeleting
+                                                                }
+                                                            >
+                                                                <Trash2 className="w-4 h-4 mr-2" />
+                                                                Supprimer
+                                                            </DropdownMenuItem>
+                                                        </DropdownMenuContent>
+                                                    </DropdownMenu>
+                                                </div>
+                                            </TableCell>
+                                        </TableRow>
+                                    );
+                                })
+                            )}
                         </TableBody>
                     </Table>
                 </div>
@@ -335,9 +418,10 @@ export function RessourcesTable() {
                         <AlertDialogAction
                             onClick={handleDeleteRessource}
                             className="bg-red-600 hover:bg-red-700"
+                            disabled={isDeleting}
                         >
                             <Trash2 className="w-4 h-4 mr-2" />
-                            Supprimer
+                            {isDeleting ? "Suppression..." : "Supprimer"}
                         </AlertDialogAction>
                     </AlertDialogFooter>
                 </AlertDialogContent>

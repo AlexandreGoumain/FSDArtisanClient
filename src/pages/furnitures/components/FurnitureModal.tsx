@@ -15,6 +15,8 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select";
+import { useGetAllFurnitureCategoriesQuery } from "@/store/api/furnitureCategoriesApi";
+import { useGetAllSuppliersQuery } from "@/store/api/suppliersApi";
 import type { Furniture } from "@/store/api/types/furnituresTypes";
 import { useEffect, useState } from "react";
 
@@ -26,7 +28,11 @@ interface FurnitureModalProps {
     onSave: (furnitureData: Partial<Furniture>) => void;
 }
 
-const statusOptions = ["En stock", "Épuisé", "En commande"];
+const statusOptions = [
+    { value: "waiting", label: "En attente" },
+    { value: "in_production", label: "En production" },
+    { value: "ready_to_sell", label: "Prêt à vendre" },
+];
 
 export function FurnitureModal({
     open,
@@ -40,6 +46,20 @@ export function FurnitureModal({
     const [status, setStatus] = useState("");
     const [category, setCategory] = useState("");
     const [stock, setStock] = useState(0);
+    const [selectedSupplier, setSelectedSupplier] = useState("");
+
+    // Récupération des catégories et suppliers
+    const {
+        data: categories,
+        isLoading: isCategoriesLoading,
+        isError: isCategoriesError,
+    } = useGetAllFurnitureCategoriesQuery();
+
+    const {
+        data: suppliers,
+        isLoading: isSuppliersLoading,
+        isError: isSuppliersError,
+    } = useGetAllSuppliersQuery();
 
     // Charger les informations du meuble (modification) ou réinitialiser (création)
     useEffect(() => {
@@ -49,17 +69,17 @@ export function FurnitureModal({
             setStatus(selectedFurniture.status);
             setCategory(selectedFurniture.idCategory);
             setStock(selectedFurniture.quantity);
-            // setImage(selectedFurniture.image);
+            setSelectedSupplier(""); // TODO: Ajouter supplierId au type Furniture si nécessaire
         } else if (open && isCreating) {
             setName("");
             setDescription("");
-            setStatus("En stock");
+            setStatus("waiting");
             setCategory("");
             setStock(0);
-            // setImage("");
+            setSelectedSupplier("");
         }
     }, [selectedFurniture, open, isCreating]);
-    //TODO: Add Validator
+
     // Handlers
     const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setName(e.target.value);
@@ -71,6 +91,10 @@ export function FurnitureModal({
 
     const handleStatusChange = (value: string) => {
         setStatus(value);
+    };
+
+    const handleSupplierChange = (value: string) => {
+        setSelectedSupplier(value);
     };
 
     const handleDescriptionChange = (
@@ -90,7 +114,9 @@ export function FurnitureModal({
             description,
             status,
             idCategory: category,
-            stock,
+            quantity: stock,
+            // TODO: Ajouter supplierId quand le type sera mis à jour
+            // supplierId: selectedSupplier,
         };
 
         onSave(furnitureData);
@@ -99,7 +125,7 @@ export function FurnitureModal({
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogContent className="max-w-md">
+            <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
                 <DialogHeader>
                     <DialogTitle>
                         {isCreating
@@ -142,17 +168,32 @@ export function FurnitureModal({
                             <Select
                                 value={category}
                                 onValueChange={handleCategoryChange}
+                                disabled={isCategoriesLoading}
                             >
                                 <SelectTrigger>
                                     <SelectValue placeholder="Sélectionner une catégorie" />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    <SelectItem value="armoire">
-                                        Armoire
-                                    </SelectItem>
-                                    <SelectItem value="etagere">
-                                        Etagère
-                                    </SelectItem>
+                                    {!isCategoriesLoading &&
+                                        !isCategoriesError &&
+                                        categories?.map((cat) => (
+                                            <SelectItem
+                                                key={cat._id}
+                                                value={cat._id}
+                                            >
+                                                {cat.label}
+                                            </SelectItem>
+                                        ))}
+                                    {isCategoriesLoading && (
+                                        <SelectItem value="" disabled>
+                                            Chargement...
+                                        </SelectItem>
+                                    )}
+                                    {isCategoriesError && (
+                                        <SelectItem value="" disabled>
+                                            Erreur de chargement
+                                        </SelectItem>
+                                    )}
                                 </SelectContent>
                             </Select>
                         </div>
@@ -168,10 +209,10 @@ export function FurnitureModal({
                                 <SelectContent>
                                     {statusOptions.map((statusOption) => (
                                         <SelectItem
-                                            key={statusOption}
-                                            value={statusOption}
+                                            key={statusOption.value}
+                                            value={statusOption.value}
                                         >
-                                            {statusOption}
+                                            {statusOption.label}
                                         </SelectItem>
                                     ))}
                                 </SelectContent>
@@ -179,19 +220,55 @@ export function FurnitureModal({
                         </div>
                     </div>
 
-                    {status === "En stock" && (
-                        <div className="space-y-2">
-                            <Label htmlFor="stock">Stock disponible</Label>
-                            <Input
-                                id="stock"
-                                type="number"
-                                min="0"
-                                value={stock}
-                                onChange={handleStockChange}
-                                placeholder="0"
-                            />
-                        </div>
-                    )}
+                    <div className="space-y-2">
+                        <Label>Fournisseur</Label>
+                        <Select
+                            value={selectedSupplier}
+                            onValueChange={handleSupplierChange}
+                            disabled={isSuppliersLoading}
+                        >
+                            <SelectTrigger>
+                                <SelectValue placeholder="Sélectionner un fournisseur" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="">
+                                    Aucun fournisseur
+                                </SelectItem>
+                                {!isSuppliersLoading &&
+                                    !isSuppliersError &&
+                                    suppliers?.map((supplier) => (
+                                        <SelectItem
+                                            key={supplier._id}
+                                            value={supplier._id}
+                                        >
+                                            {supplier.name}
+                                        </SelectItem>
+                                    ))}
+                                {isSuppliersLoading && (
+                                    <SelectItem value="" disabled>
+                                        Chargement des fournisseurs...
+                                    </SelectItem>
+                                )}
+                                {isSuppliersError && (
+                                    <SelectItem value="" disabled>
+                                        Erreur de chargement des fournisseurs
+                                    </SelectItem>
+                                )}
+                            </SelectContent>
+                        </Select>
+                    </div>
+
+                    <div className="space-y-2">
+                        <Label htmlFor="stock">Quantité</Label>
+                        <Input
+                            id="stock"
+                            type="number"
+                            min="0"
+                            value={stock}
+                            onChange={handleStockChange}
+                            placeholder="1"
+                        />
+                    </div>
 
                     <div className="flex justify-end gap-2">
                         <Button

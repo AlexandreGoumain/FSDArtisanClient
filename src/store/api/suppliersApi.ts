@@ -21,7 +21,7 @@ export const suppliersApi = baseApi.injectEndpoints({
             }),
             transformResponse: (response: { data: Supplier[] }) =>
                 response.data,
-            providesTags: ["Supplier"],
+            providesTags: ["Supplier", "RessourceCategory", "Ressource"],
         }),
 
         getSupplierById: builder.query<Supplier, string>({

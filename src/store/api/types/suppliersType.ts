@@ -3,21 +3,12 @@ export type Supplier = {
     name: string;
     email: string;
     phone: string;
-    category: SupplierCategory;
-    status: SupplierStatus;
-    lastOrderDate: Date;
+    ressourceCategories: string[]; // Array of ressource category IDs (calculé par le backend)
     createdAt: string;
     updatedAt: string;
 };
 
-export type SupplierCategory = "wood" | "metal" | "plastic";
-
-export type SupplierStatus = "active" | "waiting";
-
-export type SupplierCreate = Pick<
-    Supplier,
-    "name" | "email" | "phone" | "category" | "status" | "lastOrderDate"
->;
+export type SupplierCreate = Pick<Supplier, "name" | "email" | "phone">;
 
 export type SupplierUpdate = SupplierCreate & {
     _id?: string;

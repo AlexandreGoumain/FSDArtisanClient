@@ -19,30 +19,18 @@ export const AuthGuard = ({ children }: AuthGuardProps) => {
         // Si pas encore initialisé ET pas authentifié (via persistance)
         // Alors on vérifie l'auth côté serveur
         if (!isInitialized && !isAuthenticated) {
-            console.log(
-                "i'm getting current user because i'm not initialized and not authenticated [1]"
-            );
-
             getCurrentUser();
-            console.log("result [1]", getCurrentUser);
         }
         // Si l'état est persisté et qu'on est authentifié,
         // on peut quand même vérifier en arrière-plan (optionnel)
         else if (isInitialized && isAuthenticated) {
-            console.log(
-                "i'm getting current user because i'm initialized and authenticated [2]"
-            );
-
             // Vérification silencieuse en arrière-plan pour s'assurer que le token est toujours valide
             getCurrentUser();
-            console.log("result [2]", getCurrentUser);
         }
     }, [isInitialized, isAuthenticated, getCurrentUser]);
 
     // Si pas initialisé ET pas authentifié (premier chargement sans persistance)
     if (!isInitialized && !isAuthenticated) {
-        console.log("i'm not initialized and not authenticated [3]");
-
         return (
             <div className="flex items-center justify-center min-h-screen">
                 <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-gray-900"></div>
