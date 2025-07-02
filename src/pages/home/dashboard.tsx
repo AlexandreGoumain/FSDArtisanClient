@@ -1,9 +1,7 @@
 import { ChartAreaInteractive } from "@/components/chart-area-interactive";
-import { DataTable } from "@/components/data-table";
 import { SectionCards } from "@/components/section-cards";
 
 import { Error } from "@/components/Error";
-import data from "@/components/layout/data/data.json";
 import { useGetAllFurnituresQuery } from "@/store/api/furnituresApi";
 import { useGetAllRessourcesQuery } from "@/store/api/ressourcesApi";
 import { useGetAllSuppliersQuery } from "@/store/api/suppliersApi";
@@ -62,7 +60,6 @@ export const Dashboard = () => {
             <div className="px-4 lg:px-6">
                 <ChartAreaInteractive />
             </div>
-            <DataTable data={data} />
         </>
     );
 };

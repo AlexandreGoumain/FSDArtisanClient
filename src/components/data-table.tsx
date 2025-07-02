@@ -100,7 +100,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { dashboardValidator } from "./validators/dashboardValidator";
 
-// Create a separate component for the drag handle
 function DragHandle({ id }: { id: number }) {
     const { attributes, listeners } = useSortable({
         id,

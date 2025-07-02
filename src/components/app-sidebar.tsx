@@ -48,9 +48,6 @@ const data = {
 };
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
-    //TODO : change documents tabs
-
-    //TODO : develop or remove settings, get help, search
     const { currentPath } = useRouting();
     const {
         data: user,

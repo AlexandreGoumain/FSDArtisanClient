@@ -16,20 +16,13 @@ export const AuthGuard = ({ children }: AuthGuardProps) => {
     const [getCurrentUser] = useLazyGetMeUserQuery();
 
     useEffect(() => {
-        // Si pas encore initialisé ET pas authentifié (via persistance)
-        // Alors on vérifie l'auth côté serveur
         if (!isInitialized && !isAuthenticated) {
             getCurrentUser();
-        }
-        // Si l'état est persisté et qu'on est authentifié,
-        // on peut quand même vérifier en arrière-plan (optionnel)
-        else if (isInitialized && isAuthenticated) {
-            // Vérification silencieuse en arrière-plan pour s'assurer que le token est toujours valide
+        } else if (isInitialized && isAuthenticated) {
             getCurrentUser();
         }
     }, [isInitialized, isAuthenticated, getCurrentUser]);
 
-    // Si pas initialisé ET pas authentifié (premier chargement sans persistance)
     if (!isInitialized && !isAuthenticated) {
         return (
             <div className="flex items-center justify-center min-h-screen">

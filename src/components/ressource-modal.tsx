@@ -41,7 +41,6 @@ export function RessourceModal({
     const [supplierId, setSupplierId] = useState("");
     const [description, setDescription] = useState("");
 
-    // Récupération des catégories et suppliers
     const {
         data: categories,
         isLoading: isCategoriesLoading,
@@ -54,7 +53,6 @@ export function RessourceModal({
         isError: isSuppliersError,
     } = useGetAllSuppliersQuery();
 
-    // Charger les informations de la ressource (modification) ou réinitialiser (création)
     useEffect(() => {
         if (selectedRessource && open && !isCreating) {
             setName(selectedRessource.name);
@@ -69,7 +67,6 @@ export function RessourceModal({
         }
     }, [selectedRessource, open, isCreating]);
 
-    // Handlers
     const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setName(e.target.value);
     };

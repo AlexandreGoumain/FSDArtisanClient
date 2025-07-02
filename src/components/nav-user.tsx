@@ -24,7 +24,6 @@ import { useAuth } from "@/hooks/useAuthRTK";
 import type { UserData } from "@/schemas/auth";
 
 export function NavUser({ user }: { user?: UserData }) {
-    //TODO : made a redirection to the user page when "Mon compte" is clicked
     const { isMobile } = useSidebar();
     const { logout } = useAuth();
 
@@ -32,7 +31,6 @@ export function NavUser({ user }: { user?: UserData }) {
         await logout();
     };
 
-    // Si pas d'utilisateur, ne pas afficher le composant
     if (!user) {
         return null;
     }
