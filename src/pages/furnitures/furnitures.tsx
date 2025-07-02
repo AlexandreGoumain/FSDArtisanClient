@@ -26,18 +26,17 @@ import { Error } from "@/components/Error";
 import { useGetAllFurnitureCategoriesQuery } from "@/store/api/furnitureCategoriesApi";
 import {
     useCreateFurnitureMutation,
+    useDeleteFurnitureMutation,
     useGetAllFurnituresQuery,
+    useUpdateFurnitureMutation,
 } from "@/store/api/furnituresApi";
 import type {
     Furniture,
     FurnitureCreate,
+    FurnitureUpdate,
 } from "@/store/api/types/furnituresTypes";
 
 export const Furnitures = () => {
-    //TODO : work on status filter
-    //TODO : work on modal modifier, add a button to open it
-    //TODO : work on modal ajouter, add a button to open it
-    //TODO : work on modal supprimer, add a button to open it and add a confirmation
     const {
         data: furnitures,
         isLoading,
@@ -55,6 +54,14 @@ export const Furnitures = () => {
     // Mutation pour créer un nouveau meuble
     const [createFurniture, { isLoading: isCreating }] =
         useCreateFurnitureMutation();
+
+    // Mutation pour mettre à jour un meuble
+    const [updateFurniture, { isLoading: isUpdating }] =
+        useUpdateFurnitureMutation();
+
+    // Mutation pour supprimer un meuble
+    const [deleteFurniture, { isLoading: isDeleting }] =
+        useDeleteFurnitureMutation();
 
     const [selectedFurniture, setSelectedFurniture] =
         useState<Furniture | null>(null);
@@ -82,46 +89,46 @@ export const Furnitures = () => {
         setOpenAlert(true);
     };
 
-    const handleDeleteFurniture = () => {
-        console.log("Suppression du meuble:", selectedFurniture?.name);
-        setOpenAlert(false);
-        setSelectedFurniture(null);
+    const handleDeleteFurniture = async () => {
+        if (!selectedFurniture) return;
+
+        try {
+            await deleteFurniture(selectedFurniture._id).unwrap();
+            setOpenAlert(false);
+            setSelectedFurniture(null);
+        } catch (error) {
+            console.error("Erreur lors de la suppression:", error);
+            // TODO: Afficher un message d'erreur à l'utilisateur
+        }
     };
 
-    const handleSaveFurniture = async (furnitureData: Partial<Furniture>) => {
+    const handleSaveFurniture = async (furnitureData: FurnitureCreate) => {
         try {
             if (isCreatingMode) {
                 // Créer un nouveau meuble
-                const newFurnitureData: FurnitureCreate = {
-                    name: furnitureData.name || "",
-                    idCategory: furnitureData.idCategory || "",
-                    ressources: furnitureData.ressources || [],
-                    quantity: furnitureData.quantity || 1,
-                    status:
-                        (furnitureData.status as
-                            | "waiting"
-                            | "in_production"
-                            | "ready_to_sell") || "waiting",
+                await createFurniture(furnitureData).unwrap();
+            } else {
+                // Mettre à jour un meuble existant
+                if (!selectedFurniture) return;
+
+                const updateData: FurnitureUpdate = {
+                    ...furnitureData,
+                    _id: selectedFurniture._id,
                 };
 
-                await createFurniture(newFurnitureData).unwrap();
-                console.log("Nouveau meuble créé avec succès");
-            } else {
-                // Logique de mise à jour (à implémenter plus tard)
-                const updatedFurniture = {
-                    ...selectedFurniture!,
-                    ...furnitureData,
-                };
-                console.log("Meuble mis à jour:", updatedFurniture);
-                // TODO: Implémenter useUpdateFurnitureMutation
+                await updateFurniture(updateData).unwrap();
             }
 
             setOpenDialog(false);
             setSelectedFurniture(null);
             setIsCreatingMode(false);
-        } catch (error) {
+        } catch (error: unknown) {
             console.error("Erreur lors de la sauvegarde:", error);
-            // TODO: Afficher un message d'erreur à l'utilisateur
+            <Error
+                title="Erreur lors de la sauvegarde"
+                description="Veuillez réessayer plus tard"
+                methods={refetchFurnitures}
+            />;
         }
     };
 
@@ -161,9 +168,11 @@ export const Furnitures = () => {
                     <h2 className="text-xl font-semibold">Tous les meubles</h2>
                     <Button
                         onClick={handleOpenCreateDialog}
-                        disabled={isCreating}
+                        disabled={isCreating || isUpdating || isDeleting}
                     >
-                        {isCreating ? "Création..." : "Ajouter"}
+                        {isCreating || isUpdating || isDeleting
+                            ? "En cours..."
+                            : "Ajouter"}
                         <Plus className="w-4 h-4" />
                     </Button>
                 </div>
@@ -262,9 +271,10 @@ export const Furnitures = () => {
                         <AlertDialogAction
                             onClick={handleDeleteFurniture}
                             className="bg-red-600 hover:bg-red-700"
+                            disabled={isDeleting}
                         >
                             <Trash2 className="w-4 h-4 mr-2" />
-                            Supprimer
+                            {isDeleting ? "Suppression..." : "Supprimer"}
                         </AlertDialogAction>
                     </AlertDialogFooter>
                 </AlertDialogContent>

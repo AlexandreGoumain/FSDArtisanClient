@@ -108,10 +108,6 @@ export function SuppliersTable() {
 
         try {
             await deleteSupplier(selectedSupplier._id).unwrap();
-            console.log(
-                "Fournisseur supprimé avec succès:",
-                selectedSupplier.name
-            );
         } catch (error) {
             console.error("Erreur lors de la suppression:", error);
         } finally {
@@ -132,7 +128,6 @@ export function SuppliersTable() {
                 };
 
                 await createSupplier(newSupplierData).unwrap();
-                console.log("Nouveau fournisseur créé avec succès");
             } else {
                 // Mettre à jour un fournisseur existant
                 if (!selectedSupplier) return;
@@ -145,10 +140,14 @@ export function SuppliersTable() {
                 };
 
                 await updateSupplier(updatedSupplierData).unwrap();
-                console.log("Fournisseur mis à jour avec succès");
             }
-        } catch (error) {
+        } catch (error: unknown) {
             console.error("Erreur lors de la sauvegarde:", error);
+            <Error
+                title="Erreur lors de la sauvegarde"
+                description="Veuillez réessayer plus tard"
+                methods={refetchSuppliers}
+            />;
         } finally {
             setOpenDialog(false);
             setSelectedSupplier(null);

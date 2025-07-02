@@ -21,7 +21,7 @@ export const ressourcesApi = baseApi.injectEndpoints({
             }),
             transformResponse: (response: { data: Ressource[] }) =>
                 response.data,
-            providesTags: ["Ressource"],
+            providesTags: ["Ressource", "Furniture"],
         }),
 
         getRessourceById: builder.query<Ressource, string>({
@@ -30,7 +30,7 @@ export const ressourcesApi = baseApi.injectEndpoints({
                 method: "GET",
             }),
             transformResponse: (response: { data: Ressource }) => response.data,
-            providesTags: ["Ressource"],
+            providesTags: ["Ressource", "Furniture"],
         }),
 
         createRessource: builder.mutation<Ressource, RessourceCreate>({
@@ -39,7 +39,7 @@ export const ressourcesApi = baseApi.injectEndpoints({
                 method: "POST",
                 body: ressource,
             }),
-            invalidatesTags: ["Ressource"],
+            invalidatesTags: ["Ressource", "Furniture"],
         }),
 
         updateRessource: builder.mutation<Ressource, RessourceUpdate>({
@@ -48,14 +48,14 @@ export const ressourcesApi = baseApi.injectEndpoints({
                 method: "PUT",
                 body: ressource,
             }),
-            invalidatesTags: ["Ressource"],
+            invalidatesTags: ["Ressource", "Furniture"],
         }),
         deleteRessource: builder.mutation<RessourceDelete, string>({
             query: (id) => ({
                 url: `${API_ENDPOINTS.RESSOURCES}/${id}`,
                 method: "DELETE",
             }),
-            invalidatesTags: ["Ressource"],
+            invalidatesTags: ["Ressource", "Furniture"],
         }),
     }),
 });

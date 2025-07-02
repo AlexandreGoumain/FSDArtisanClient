@@ -20,6 +20,7 @@ export type FurnitureStatus = "waiting" | "in_production" | "ready_to_sell";
 
 export type FurnitureCreate = {
     name: string;
+    description?: string;
     idCategory: string;
     ressources: Partial<Ressource>[];
     quantity: number;

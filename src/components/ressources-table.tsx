@@ -114,10 +114,6 @@ export function RessourcesTable() {
 
         try {
             await deleteRessource(selectedRessource._id).unwrap();
-            console.log(
-                "Ressource supprimée avec succès:",
-                selectedRessource.name
-            );
         } catch (error) {
             console.error("Erreur lors de la suppression:", error);
         } finally {
@@ -139,7 +135,6 @@ export function RessourcesTable() {
                 };
 
                 await createRessource(newRessourceData).unwrap();
-                console.log("Nouvelle ressource créée avec succès");
             } else {
                 // Mettre à jour une ressource existante
                 if (!selectedRessource) return;
@@ -157,7 +152,6 @@ export function RessourcesTable() {
                 };
 
                 await updateRessource(updatedRessourceData).unwrap();
-                console.log("Ressource mise à jour avec succès");
             }
         } catch (error) {
             console.error("Erreur lors de la sauvegarde:", error);

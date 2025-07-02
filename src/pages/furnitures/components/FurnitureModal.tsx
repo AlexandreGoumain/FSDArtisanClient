@@ -1,3 +1,4 @@
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
     Dialog,
@@ -16,8 +17,12 @@ import {
     SelectValue,
 } from "@/components/ui/select";
 import { useGetAllFurnitureCategoriesQuery } from "@/store/api/furnitureCategoriesApi";
-import { useGetAllSuppliersQuery } from "@/store/api/suppliersApi";
-import type { Furniture } from "@/store/api/types/furnituresTypes";
+import { useGetAllRessourcesQuery } from "@/store/api/ressourcesApi";
+import type {
+    Furniture,
+    FurnitureCreate,
+} from "@/store/api/types/furnituresTypes";
+import { Plus, X } from "lucide-react";
 import { useEffect, useState } from "react";
 
 interface FurnitureModalProps {
@@ -25,7 +30,7 @@ interface FurnitureModalProps {
     onOpenChange: (open: boolean) => void;
     isCreating: boolean;
     selectedFurniture: Furniture | null;
-    onSave: (furnitureData: Partial<Furniture>) => void;
+    onSave: (furnitureData: FurnitureCreate) => void;
 }
 
 const statusOptions = [
@@ -33,6 +38,12 @@ const statusOptions = [
     { value: "in_production", label: "En production" },
     { value: "ready_to_sell", label: "Prêt à vendre" },
 ];
+
+type SelectedResource = {
+    idRessource: string;
+    quantity: number;
+    name?: string; // Pour l'affichage
+};
 
 export function FurnitureModal({
     open,
@@ -46,9 +57,13 @@ export function FurnitureModal({
     const [status, setStatus] = useState("");
     const [category, setCategory] = useState("");
     const [stock, setStock] = useState(0);
-    const [selectedSupplier, setSelectedSupplier] = useState("");
+    const [selectedResources, setSelectedResources] = useState<
+        SelectedResource[]
+    >([]);
+    const [resourceToAdd, setResourceToAdd] = useState("");
+    const [resourceQuantity, setResourceQuantity] = useState(1);
 
-    // Récupération des catégories et suppliers
+    // Récupération des données
     const {
         data: categories,
         isLoading: isCategoriesLoading,
@@ -56,10 +71,10 @@ export function FurnitureModal({
     } = useGetAllFurnitureCategoriesQuery();
 
     const {
-        data: suppliers,
-        isLoading: isSuppliersLoading,
-        isError: isSuppliersError,
-    } = useGetAllSuppliersQuery();
+        data: resources,
+        isLoading: isResourcesLoading,
+        isError: isResourcesError,
+    } = useGetAllRessourcesQuery();
 
     // Charger les informations du meuble (modification) ou réinitialiser (création)
     useEffect(() => {
@@ -69,16 +84,29 @@ export function FurnitureModal({
             setStatus(selectedFurniture.status);
             setCategory(selectedFurniture.idCategory);
             setStock(selectedFurniture.quantity);
-            setSelectedSupplier(""); // TODO: Ajouter supplierId au type Furniture si nécessaire
+
+            // Charger les ressources existantes
+            const furnitureResources = selectedFurniture.ressources.map(
+                (res) => ({
+                    idRessource: res.idRessource,
+                    quantity: res.quantity,
+                    name:
+                        resources?.find((r) => r._id === res.idRessource)
+                            ?.name || "Ressource inconnue",
+                })
+            );
+            setSelectedResources(furnitureResources);
         } else if (open && isCreating) {
             setName("");
             setDescription("");
             setStatus("waiting");
             setCategory("");
             setStock(0);
-            setSelectedSupplier("");
+            setSelectedResources([]);
         }
-    }, [selectedFurniture, open, isCreating]);
+        setResourceToAdd("");
+        setResourceQuantity(1);
+    }, [selectedFurniture, open, isCreating, resources]);
 
     // Handlers
     const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -93,10 +121,6 @@ export function FurnitureModal({
         setStatus(value);
     };
 
-    const handleSupplierChange = (value: string) => {
-        setSelectedSupplier(value);
-    };
-
     const handleDescriptionChange = (
         e: React.ChangeEvent<HTMLTextAreaElement>
     ) => {
@@ -108,24 +132,81 @@ export function FurnitureModal({
         setStock(value);
     };
 
+    const handleResourceAdd = () => {
+        if (!resourceToAdd || resourceQuantity <= 0) return;
+
+        // Vérifier si la ressource n'est pas déjà ajoutée
+        if (
+            selectedResources.some((res) => res.idRessource === resourceToAdd)
+        ) {
+            return;
+        }
+
+        const resourceName =
+            resources?.find((r) => r._id === resourceToAdd)?.name ||
+            "Ressource inconnue";
+
+        setSelectedResources([
+            ...selectedResources,
+            {
+                idRessource: resourceToAdd,
+                quantity: resourceQuantity,
+                name: resourceName,
+            },
+        ]);
+
+        setResourceToAdd("");
+        setResourceQuantity(1);
+    };
+
+    const handleResourceRemove = (idRessource: string) => {
+        setSelectedResources(
+            selectedResources.filter((res) => res.idRessource !== idRessource)
+        );
+    };
+
+    const handleResourceQuantityChange = (
+        idRessource: string,
+        newQuantity: number
+    ) => {
+        setSelectedResources(
+            selectedResources.map((res) =>
+                res.idRessource === idRessource
+                    ? { ...res, quantity: newQuantity }
+                    : res
+            )
+        );
+    };
+
     const handleSave = () => {
-        const furnitureData = {
+        const furnitureData: FurnitureCreate = {
             name,
             description,
-            status,
+            status: status as "waiting" | "in_production" | "ready_to_sell",
             idCategory: category,
             quantity: stock,
-            // TODO: Ajouter supplierId quand le type sera mis à jour
-            // supplierId: selectedSupplier,
+            ressources: selectedResources.map((res) => ({
+                idRessource: res.idRessource,
+                quantity: res.quantity,
+            })),
         };
 
         onSave(furnitureData);
         onOpenChange(false);
     };
 
+    // Filtrer les ressources disponibles (non encore sélectionnées)
+    const availableResources =
+        resources?.filter(
+            (resource) =>
+                !selectedResources.some(
+                    (selected) => selected.idRessource === resource._id
+                )
+        ) || [];
+
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
+            <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
                 <DialogHeader>
                     <DialogTitle>
                         {isCreating
@@ -185,12 +266,12 @@ export function FurnitureModal({
                                             </SelectItem>
                                         ))}
                                     {isCategoriesLoading && (
-                                        <SelectItem value="" disabled>
+                                        <SelectItem value="loading" disabled>
                                             Chargement...
                                         </SelectItem>
                                     )}
                                     {isCategoriesError && (
-                                        <SelectItem value="" disabled>
+                                        <SelectItem value="error" disabled>
                                             Erreur de chargement
                                         </SelectItem>
                                     )}
@@ -220,42 +301,128 @@ export function FurnitureModal({
                         </div>
                     </div>
 
-                    <div className="space-y-2">
-                        <Label>Fournisseur</Label>
-                        <Select
-                            value={selectedSupplier}
-                            onValueChange={handleSupplierChange}
-                            disabled={isSuppliersLoading}
-                        >
-                            <SelectTrigger>
-                                <SelectValue placeholder="Sélectionner un fournisseur" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                <SelectItem value="">
-                                    Aucun fournisseur
-                                </SelectItem>
-                                {!isSuppliersLoading &&
-                                    !isSuppliersError &&
-                                    suppliers?.map((supplier) => (
-                                        <SelectItem
-                                            key={supplier._id}
-                                            value={supplier._id}
+                    {/* Section Ressources */}
+                    <div className="space-y-4">
+                        <Label>Ressources nécessaires</Label>
+
+                        {/* Ressources sélectionnées */}
+                        {selectedResources.length > 0 && (
+                            <div className="space-y-2">
+                                {selectedResources.map((resource) => (
+                                    <div
+                                        key={resource.idRessource}
+                                        className="flex items-center gap-2 p-2 bg-orange-50 border border-orange-200 rounded-lg"
+                                    >
+                                        <Badge
+                                            variant="secondary"
+                                            className="text-xs"
                                         >
-                                            {supplier.name}
+                                            {resource.name}
+                                        </Badge>
+                                        <Input
+                                            type="number"
+                                            min="1"
+                                            value={resource.quantity}
+                                            onChange={(e) =>
+                                                handleResourceQuantityChange(
+                                                    resource.idRessource,
+                                                    parseInt(e.target.value) ||
+                                                        1
+                                                )
+                                            }
+                                            className="w-20 h-8"
+                                        />
+                                        <span className="text-sm text-gray-600">
+                                            unités
+                                        </span>
+                                        <Button
+                                            variant="ghost"
+                                            size="sm"
+                                            onClick={() =>
+                                                handleResourceRemove(
+                                                    resource.idRessource
+                                                )
+                                            }
+                                            className="h-8 w-8 p-0 text-red-500 hover:text-red-700"
+                                        >
+                                            <X className="w-4 h-4" />
+                                        </Button>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+
+                        {/* Ajouter une ressource */}
+                        <div className="flex gap-2">
+                            <Select
+                                value={resourceToAdd}
+                                onValueChange={setResourceToAdd}
+                                disabled={
+                                    isResourcesLoading ||
+                                    availableResources.length === 0
+                                }
+                            >
+                                <SelectTrigger className="flex-1">
+                                    <SelectValue
+                                        placeholder={
+                                            availableResources.length === 0
+                                                ? "Toutes les ressources sont sélectionnées"
+                                                : "Ajouter une ressource"
+                                        }
+                                    />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {!isResourcesLoading &&
+                                        !isResourcesError &&
+                                        availableResources.map((resource) => (
+                                            <SelectItem
+                                                key={resource._id}
+                                                value={resource._id}
+                                            >
+                                                {resource.name}
+                                            </SelectItem>
+                                        ))}
+                                    {isResourcesLoading && (
+                                        <SelectItem
+                                            value="resources-loading"
+                                            disabled
+                                        >
+                                            Chargement des ressources...
                                         </SelectItem>
-                                    ))}
-                                {isSuppliersLoading && (
-                                    <SelectItem value="" disabled>
-                                        Chargement des fournisseurs...
-                                    </SelectItem>
-                                )}
-                                {isSuppliersError && (
-                                    <SelectItem value="" disabled>
-                                        Erreur de chargement des fournisseurs
-                                    </SelectItem>
-                                )}
-                            </SelectContent>
-                        </Select>
+                                    )}
+                                    {isResourcesError && (
+                                        <SelectItem
+                                            value="resources-error"
+                                            disabled
+                                        >
+                                            Erreur de chargement des ressources
+                                        </SelectItem>
+                                    )}
+                                </SelectContent>
+                            </Select>
+                            <Input
+                                type="number"
+                                min="1"
+                                value={resourceQuantity}
+                                onChange={(e) =>
+                                    setResourceQuantity(
+                                        parseInt(e.target.value) || 1
+                                    )
+                                }
+                                placeholder="Qté"
+                                className="w-20"
+                            />
+                            <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={handleResourceAdd}
+                                disabled={
+                                    !resourceToAdd || resourceQuantity <= 0
+                                }
+                            >
+                                <Plus className="w-4 h-4" />
+                            </Button>
+                        </div>
                     </div>
 
                     <div className="space-y-2">

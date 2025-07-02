@@ -10,6 +10,9 @@ import {
     CardTitle,
 } from "@/components/ui/card";
 import { getDifferencePercentageByPeriod } from "@/lib/utils";
+import type { Furniture } from "@/store/api/types/furnituresTypes";
+import type { Ressource } from "@/store/api/types/ressourcesType";
+import type { Supplier } from "@/store/api/types/suppliersType";
 
 const setDescriptionGrowOrDown = (percentage: number) => {
     if (percentage === 0) return "aucune variation";
@@ -17,48 +20,74 @@ const setDescriptionGrowOrDown = (percentage: number) => {
     return `En baisse de ${percentage}% sur le mois`;
 };
 
-const data = [
-    {
-        title: "Total Meubles",
-        value: 100,
-        percentageGrowThisMonth: getDifferencePercentageByPeriod(100, 110),
-        description: setDescriptionGrowOrDown(
-            getDifferencePercentageByPeriod(100, 110).percentage
-        ),
-        icon: SofaIcon,
-        color: "bg-primary",
-        borderColor: "border-primary",
-    },
-    {
-        title: "Fournisseurs",
-        value: 52,
-        percentageGrowThisMonth: getDifferencePercentageByPeriod(52, 50),
-        description: setDescriptionGrowOrDown(
-            getDifferencePercentageByPeriod(52, 50).percentage
-        ),
-        icon: TruckIcon,
-        color: "bg-primary",
-        borderColor: "border-primary",
-    },
-    {
-        title: "Ressources",
-        value: 194,
-        percentageGrowThisMonth: getDifferencePercentageByPeriod(194, 190),
-        description: setDescriptionGrowOrDown(
-            getDifferencePercentageByPeriod(194, 190).percentage
-        ),
-        icon: BoxIcon,
-        color: "bg-primary",
-        borderColor: "border-primary",
-    },
-];
+export function SectionCards({
+    ressources,
+    furnitures,
+    suppliers,
+}: {
+    ressources: Ressource[];
+    furnitures: Furniture[];
+    suppliers: Supplier[];
+}) {
+    const data = [
+        {
+            title: "Total Meubles",
+            value: furnitures.length,
+            percentageGrowThisMonth: getDifferencePercentageByPeriod(
+                furnitures.length,
+                furnitures.length + 10
+            ),
+            description: setDescriptionGrowOrDown(
+                getDifferencePercentageByPeriod(
+                    furnitures.length,
+                    furnitures.length - 5
+                ).percentage
+            ),
+            icon: SofaIcon,
+            color: "bg-primary",
+            borderColor: "border-primary",
+        },
+        {
+            title: "Fournisseurs",
+            value: suppliers.length,
+            percentageGrowThisMonth: getDifferencePercentageByPeriod(
+                suppliers.length,
+                suppliers.length + 50
+            ),
+            description: setDescriptionGrowOrDown(
+                getDifferencePercentageByPeriod(
+                    suppliers.length,
+                    suppliers.length + 50
+                ).percentage
+            ),
+            icon: TruckIcon,
+            color: "bg-primary",
+            borderColor: "border-primary",
+        },
+        {
+            title: "Ressources",
+            value: ressources.length,
+            percentageGrowThisMonth: getDifferencePercentageByPeriod(
+                ressources.length,
+                ressources.length + 0
+            ),
+            description: setDescriptionGrowOrDown(
+                getDifferencePercentageByPeriod(
+                    ressources.length,
+                    ressources.length + 0
+                ).percentage
+            ),
+            icon: BoxIcon,
+            color: "bg-primary",
+            borderColor: "border-primary",
+        },
+    ];
 
-export function SectionCards() {
     return (
         <div className="*:data-[slot=card]:from-primary/5 *:data-[slot=card]:to-card dark:*:data-[slot=card]:bg-card grid grid-cols-1 gap-4 px-4 *:data-[slot=card]:bg-gradient-to-t *:data-[slot=card]:shadow-xs lg:px-6 @xl/main:grid-cols-3 @5xl/main:grid-cols-3">
             {data &&
-                data.map((item) => (
-                    <Card className="@container/card">
+                data.map((item, index) => (
+                    <Card key={index} className="@container/card">
                         <CardHeader>
                             <CardDescription className="text-2xl">
                                 {item.title}

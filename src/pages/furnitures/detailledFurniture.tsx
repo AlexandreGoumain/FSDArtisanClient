@@ -1,20 +1,93 @@
 import { Error } from "@/components/Error";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useGetFurnitureByIdQuery } from "@/store/api/furnituresApi";
-import {
-    Download,
-    Drill,
-    Droplets,
-    Heart,
-    Paintbrush,
-    Star,
-    TreePine,
-    Wrench,
-} from "lucide-react";
+import { useGetRessourceByIdQuery } from "@/store/api/ressourcesApi";
+import { useGetAllRessourcesCategoriesQuery } from "@/store/api/ressourcesCategoriesApi";
+import { TreePine } from "lucide-react";
 import { useState } from "react";
 import { useParams } from "react-router-dom";
+
+const ResourceItem = ({
+    idRessource,
+    quantity,
+}: {
+    idRessource: string;
+    quantity: number;
+}) => {
+    const { data: resource, isLoading } = useGetRessourceByIdQuery(idRessource);
+    const { data: categories } = useGetAllRessourcesCategoriesQuery();
+
+    if (isLoading) {
+        return (
+            <div className="flex items-start gap-3 p-3 bg-muted/30 rounded-lg animate-pulse">
+                <div className="w-8 h-8 bg-muted rounded"></div>
+                <div className="flex-1 space-y-2">
+                    <div className="h-4 bg-muted rounded w-3/4"></div>
+                    <div className="h-3 bg-muted rounded w-1/2"></div>
+                </div>
+                <div className="h-6 bg-muted rounded w-16"></div>
+            </div>
+        );
+    }
+
+    if (!resource) {
+        return (
+            <div className="flex items-start gap-3 p-3 bg-red-50 rounded-lg border border-red-200">
+                <TreePine className="w-5 h-5 mt-0.5 text-red-500" />
+                <div className="flex-1">
+                    <h4 className="font-medium text-red-700">
+                        Ressource introuvable
+                    </h4>
+                    <p className="text-xs text-red-600 mt-1">
+                        ID: {idRessource}
+                    </p>
+                </div>
+                <span className="text-sm font-semibold text-red-600">
+                    {quantity} unités
+                </span>
+            </div>
+        );
+    }
+
+    const categoryName =
+        categories?.find((cat) => cat._id === resource.idCategory)?.label ||
+        "Catégorie inconnue";
+
+    // Icônes basées sur le type de ressource
+    const getResourceIcon = (categoryName: string) => {
+        switch (categoryName.toLowerCase()) {
+            case "bois":
+                return "🌳";
+            case "fer":
+                return "🔧";
+            case "plastique":
+                return "🧪";
+            default:
+                return "📦";
+        }
+    };
+
+    const icon = getResourceIcon(categoryName);
+
+    return (
+        <div className="flex items-start gap-3 p-3 bg-orange-50 rounded-lg border border-orange-200">
+            <div className="text-lg">{icon}</div>
+            <div className="flex-1">
+                <div className="flex items-center justify-between">
+                    <h4 className="font-medium text-gray-900">
+                        {resource.name}
+                    </h4>
+                    <span className="text-sm font-semibold text-orange-600">
+                        {quantity} {quantity > 1 ? "unités" : "unité"}
+                    </span>
+                </div>
+                <p className="text-xs text-gray-600 mt-1">
+                    {resource.description}
+                </p>
+            </div>
+        </div>
+    );
+};
 
 export const DetailledFurniture = () => {
     //TODO: made and rework this page, keep the same design as the other pages and add the new data from the api (ressources, )
@@ -74,51 +147,6 @@ export const DetailledFurniture = () => {
         (_, i) => `https://picsum.photos/400/300?random=${furniture._id + i}`
     );
 
-    const specifications = {
-        dimensions: "180 x 90 x 75 cm",
-        weight: "45 kg",
-        material: "Chêne massif",
-        finish: "Vernis naturel",
-    };
-
-    const resources = [
-        {
-            name: "Planches de Chêne",
-            quantity: "8 unités",
-            description: "Épaisseur 4cm, qualité A",
-            icon: TreePine,
-            color: "text-orange-600",
-        },
-        {
-            name: "Vis à bois",
-            quantity: "24 pièces",
-            description: "Ø6mm, tête fraisée",
-            icon: Drill,
-            color: "text-gray-600",
-        },
-        {
-            name: "Colle à bois",
-            quantity: "500ml",
-            description: "Résistante à l'humidité",
-            icon: Droplets,
-            color: "text-blue-600",
-        },
-        {
-            name: "Vernis naturel",
-            quantity: "750ml",
-            description: "Protection et finition",
-            icon: Paintbrush,
-            color: "text-purple-600",
-        },
-        {
-            name: "Chevilles en bois",
-            quantity: "16 pièces",
-            description: "Diamètre 8mm",
-            icon: Wrench,
-            color: "text-red-600",
-        },
-    ];
-
     return (
         <div className="space-y-6 px-4 lg:px-6 max-w-7xl mx-auto">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
@@ -161,73 +189,10 @@ export const DetailledFurniture = () => {
                         <h1 className="text-3xl font-bold mb-2">
                             {furniture.name}
                         </h1>
-                        <p className="text-sm text-muted-foreground mb-4">
-                            Référence: FRN-
-                            {furniture._id.slice(-3).toUpperCase()}
-                        </p>
-
-                        {/* Étoiles */}
-                        <div className="flex items-center gap-2 mb-4">
-                            <div className="flex">
-                                {Array.from({ length: 5 }).map((_, i) => (
-                                    <Star
-                                        key={i}
-                                        className="w-4 h-4 fill-yellow-400 text-yellow-400"
-                                    />
-                                ))}
-                            </div>
-                            <span className="text-sm text-muted-foreground">
-                                (24 avis)
-                            </span>
-                        </div>
 
                         <p className="text-muted-foreground leading-relaxed">
                             {furniture.description || "Description du meuble"}.
-                            Parfaite pour 6 à 8 personnes, cette pièce allie
-                            tradition et modernité avec ses finitions soignées
-                            et sa robustesse exceptionnelle.
                         </p>
-                    </div>
-
-                    {/* Spécifications */}
-                    <div>
-                        <h3 className="text-lg font-semibold mb-4">
-                            Spécifications :
-                        </h3>
-                        <div className="grid grid-cols-2 gap-4 text-sm">
-                            <div className="flex justify-between">
-                                <span className="text-muted-foreground">
-                                    Dimensions:
-                                </span>
-                                <span className="font-medium">
-                                    {specifications.dimensions}
-                                </span>
-                            </div>
-                            <div className="flex justify-between">
-                                <span className="text-muted-foreground">
-                                    Poids:
-                                </span>
-                                <span className="font-medium">
-                                    {specifications.weight}
-                                </span>
-                            </div>
-                            <div className="flex justify-between">
-                                <span className="text-muted-foreground">
-                                    Matériau:
-                                </span>
-                                <span className="font-medium">
-                                    {specifications.material}
-                                </span>
-                            </div>
-                            <div className="flex justify-between">
-                                <span className="text-muted-foreground">
-                                    Finition:
-                                </span>
-                                <span className="font-medium">
-                                    {specifications.finish}
-                                </span>
-                            </div>
-                        </div>
                     </div>
 
                     {/* Statut */}
@@ -255,79 +220,37 @@ export const DetailledFurniture = () => {
                         </Badge>
                     </div>
 
-                    {/* Boutons d'action */}
-                    <div className="space-y-3">
-                        <Button className="w-full bg-orange-600 hover:bg-orange-700">
-                            <Download className="w-4 h-4 mr-2" />
-                            Télécharger les Plans
-                        </Button>
-                        <Button variant="outline" className="w-full">
-                            <Heart className="w-4 h-4 mr-2" />
-                            Ajouter aux Favoris
-                        </Button>
+                    {/* Ressources Nécessaires */}
+                    <div className="space-y-4">
+                        <div className="flex items-center gap-2">
+                            <TreePine className="w-5 h-5 text-green-600" />
+                            <h3 className="text-lg font-semibold">
+                                Ressources Nécessaires
+                            </h3>
+                        </div>
+
+                        <div className="space-y-3 max-h-80 overflow-y-auto">
+                            {furniture.ressources &&
+                            furniture.ressources.length > 0 ? (
+                                furniture.ressources.map((resource) => (
+                                    <ResourceItem
+                                        key={resource._id}
+                                        idRessource={resource.idRessource}
+                                        quantity={resource.quantity}
+                                    />
+                                ))
+                            ) : (
+                                <div className="text-center py-4 text-muted-foreground">
+                                    <TreePine className="w-8 h-8 mx-auto mb-2 opacity-50" />
+                                    <p className="text-sm">
+                                        Aucune ressource nécessaire
+                                    </p>
+                                </div>
+                            )}
+                        </div>
                     </div>
                 </div>
             </div>
-
-            {/* Ressources Nécessaires */}
-            <Card>
-                <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                        <TreePine className="w-5 h-5 text-green-600" />
-                        Ressources Nécessaires
-                    </CardTitle>
-                </CardHeader>
-                <CardContent>
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                        {furniture.ressources && furniture.ressources.length > 0
-                            ? furniture.ressources.map((resource, index) => (
-                                  <div
-                                      key={index}
-                                      className="flex items-start gap-3 p-4 bg-muted/50 rounded-lg"
-                                  >
-                                      <TreePine className="w-5 h-5 mt-0.5 text-green-600" />
-                                      <div className="flex-1">
-                                          <div className="flex items-center justify-between">
-                                              <h4 className="font-medium">
-                                                  Ressource{" "}
-                                                  {resource.idRessource}
-                                              </h4>
-                                              <span className="text-sm font-semibold text-primary">
-                                                  {resource.quantity} unités
-                                              </span>
-                                          </div>
-                                          <p className="text-xs text-muted-foreground mt-1">
-                                              ID: {resource._id}
-                                          </p>
-                                      </div>
-                                  </div>
-                              ))
-                            : resources.map((resource, index) => (
-                                  <div
-                                      key={index}
-                                      className="flex items-start gap-3 p-4 bg-muted/50 rounded-lg"
-                                  >
-                                      <resource.icon
-                                          className={`w-5 h-5 mt-0.5 ${resource.color}`}
-                                      />
-                                      <div className="flex-1">
-                                          <div className="flex items-center justify-between">
-                                              <h4 className="font-medium">
-                                                  {resource.name}
-                                              </h4>
-                                              <span className="text-sm font-semibold text-primary">
-                                                  {resource.quantity}
-                                              </span>
-                                          </div>
-                                          <p className="text-xs text-muted-foreground mt-1">
-                                              {resource.description}
-                                          </p>
-                                      </div>
-                                  </div>
-                              ))}
-                    </div>
-                </CardContent>
-            </Card>
         </div>
     );
 };
