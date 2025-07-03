@@ -8,6 +8,7 @@ import { Furnitures } from "@/pages/furnitures/furnitures";
 import { Dashboard } from "@/pages/home/dashboard";
 import { Ressources } from "@/pages/ressources/ressources";
 import { Suppliers } from "@/pages/suppliers/suppliers";
+import { DetailledRessource } from "@/pages/ressources/detailledRessource";
 
 export const privateRoutes = [
     {
@@ -25,6 +26,10 @@ export const privateRoutes = [
             {
                 path: "/furnitures/:id",
                 element: <DetailledFurniture />,
+            },
+            {
+                path: "/ressources/:id",
+                element: <DetailledRessource />,
             },
             {
                 path: "/suppliers",
