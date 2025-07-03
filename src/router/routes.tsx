@@ -3,7 +3,6 @@ import { Navigate } from "react-router-dom";
 import { Layout } from "@/components/layout/layout";
 import { Login } from "@/pages/auth/login";
 import { Register } from "@/pages/auth/register";
-import { FakePage } from "@/pages/fakePage";
 import { DetailledFurniture } from "@/pages/furnitures/detailledFurniture";
 import { Furnitures } from "@/pages/furnitures/furnitures";
 import { Dashboard } from "@/pages/home/dashboard";
@@ -34,14 +33,6 @@ export const privateRoutes = [
             {
                 path: "/ressources",
                 element: <Ressources />,
-            },
-            {
-                path: "/categories",
-                element: <FakePage title="Catégories" />,
-            },
-            {
-                path: "/categories/create",
-                element: <FakePage title="Créer Catégorie" />,
             },
         ],
     },

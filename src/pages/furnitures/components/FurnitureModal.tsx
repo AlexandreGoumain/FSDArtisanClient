@@ -1,3 +1,4 @@
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -24,6 +25,11 @@ import type {
 } from "@/store/api/types/furnituresTypes";
 import { Plus, X } from "lucide-react";
 import { useEffect, useState } from "react";
+import { useFormValidation } from "../../../hooks/useValidation";
+import {
+    furnitureCreateSchema,
+    type FurnitureCreateData,
+} from "../../../schemas";
 
 interface FurnitureModalProps {
     open: boolean;
@@ -31,6 +37,7 @@ interface FurnitureModalProps {
     isCreating: boolean;
     selectedFurniture: Furniture | null;
     onSave: (furnitureData: FurnitureCreate) => void;
+    isLoading?: boolean;
 }
 
 const statusOptions = [
@@ -51,12 +58,25 @@ export function FurnitureModal({
     isCreating,
     selectedFurniture,
     onSave,
+    isLoading = false,
 }: FurnitureModalProps) {
-    const [name, setName] = useState("");
-    const [description, setDescription] = useState("");
-    const [status, setStatus] = useState("");
-    const [category, setCategory] = useState("");
-    const [stock, setStock] = useState(0);
+    const {
+        data,
+        errors,
+        touched,
+        isSubmitting,
+        isValid,
+        hasErrors,
+        updateField,
+        markFieldAsTouched,
+        validateForm,
+        handleSubmit,
+        reset,
+        setFieldError,
+        setInitialData,
+    } = useFormValidation<FurnitureCreateData>(furnitureCreateSchema);
+
+    // État local pour la gestion des ressources (logique métier complexe)
     const [selectedResources, setSelectedResources] = useState<
         SelectedResource[]
     >([]);
@@ -79,11 +99,18 @@ export function FurnitureModal({
     // Charger les informations du meuble (modification) ou réinitialiser (création)
     useEffect(() => {
         if (selectedFurniture && open && !isCreating) {
-            setName(selectedFurniture.name);
-            setDescription(selectedFurniture.description || "");
-            setStatus(selectedFurniture.status);
-            setCategory(selectedFurniture.idCategory);
-            setStock(selectedFurniture.quantity);
+            // Mode modification : pré-remplir les champs SANS déclencher de validation
+            setInitialData({
+                name: selectedFurniture.name,
+                description: selectedFurniture.description,
+                status: selectedFurniture.status as
+                    | "waiting"
+                    | "in_production"
+                    | "ready_to_sell",
+                idCategory: selectedFurniture.idCategory,
+                quantity: selectedFurniture.quantity,
+                ressources: selectedFurniture.ressources,
+            });
 
             // Charger les ressources existantes
             const furnitureResources = selectedFurniture.ressources.map(
@@ -97,41 +124,52 @@ export function FurnitureModal({
             );
             setSelectedResources(furnitureResources);
         } else if (open && isCreating) {
-            setName("");
-            setDescription("");
-            setStatus("waiting");
-            setCategory("");
-            setStock(0);
+            // Mode création : réinitialiser le formulaire
+            reset();
             setSelectedResources([]);
         }
         setResourceToAdd("");
         setResourceQuantity(1);
-    }, [selectedFurniture, open, isCreating, resources]);
+    }, [selectedFurniture, open, isCreating, resources, setInitialData, reset]);
 
-    // Handlers
-    const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        setName(e.target.value);
-    };
+    // Synchroniser selectedResources avec le champ de validation
+    useEffect(() => {
+        const ressourcesForValidation = selectedResources.map((res) => ({
+            idRessource: res.idRessource,
+            quantity: res.quantity,
+        }));
+        updateField("ressources", ressourcesForValidation);
+    }, [selectedResources, updateField]);
 
-    const handleCategoryChange = (value: string) => {
-        setCategory(value);
-    };
+    // Handlers pour les champs de base
+    const handleFieldChange =
+        (field: keyof Pick<FurnitureCreateData, "name" | "description">) =>
+        (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+            const value = e.target.value;
+            updateField(field, value);
+            markFieldAsTouched(field);
+        };
 
-    const handleStatusChange = (value: string) => {
-        setStatus(value);
-    };
+    const handleSelectChange =
+        (field: keyof Pick<FurnitureCreateData, "idCategory" | "status">) =>
+        (value: string) => {
+            updateField(field, value);
+            markFieldAsTouched(field);
+        };
 
-    const handleDescriptionChange = (
-        e: React.ChangeEvent<HTMLTextAreaElement>
-    ) => {
-        setDescription(e.target.value);
-    };
-
-    const handleStockChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const handleQuantityChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const value = parseInt(e.target.value) || 0;
-        setStock(value);
+        updateField("quantity", value);
+        markFieldAsTouched("quantity");
     };
 
+    // Handler pour le blur (validation immédiate)
+    const handleFieldBlur = (field: keyof FurnitureCreateData) => () => {
+        markFieldAsTouched(field);
+        validateForm();
+    };
+
+    // Gestion des ressources
     const handleResourceAdd = () => {
         if (!resourceToAdd || resourceQuantity <= 0) return;
 
@@ -146,53 +184,86 @@ export function FurnitureModal({
             resources?.find((r) => r._id === resourceToAdd)?.name ||
             "Ressource inconnue";
 
-        setSelectedResources([
+        const newSelectedResources = [
             ...selectedResources,
             {
                 idRessource: resourceToAdd,
                 quantity: resourceQuantity,
                 name: resourceName,
             },
-        ]);
+        ];
 
+        setSelectedResources(newSelectedResources);
         setResourceToAdd("");
         setResourceQuantity(1);
     };
 
     const handleResourceRemove = (idRessource: string) => {
-        setSelectedResources(
-            selectedResources.filter((res) => res.idRessource !== idRessource)
+        const newSelectedResources = selectedResources.filter(
+            (res) => res.idRessource !== idRessource
         );
+        setSelectedResources(newSelectedResources);
     };
 
     const handleResourceQuantityChange = (
         idRessource: string,
         newQuantity: number
     ) => {
-        setSelectedResources(
-            selectedResources.map((res) =>
-                res.idRessource === idRessource
-                    ? { ...res, quantity: newQuantity }
-                    : res
-            )
+        const updatedResources = selectedResources.map((res) =>
+            res.idRessource === idRessource
+                ? { ...res, quantity: newQuantity }
+                : res
         );
+        setSelectedResources(updatedResources);
     };
 
-    const handleSave = () => {
-        const furnitureData: FurnitureCreate = {
-            name,
-            description,
-            status: status as "waiting" | "in_production" | "ready_to_sell",
-            idCategory: category,
-            quantity: stock,
-            ressources: selectedResources.map((res) => ({
-                idRessource: res.idRessource,
-                quantity: res.quantity,
-            })),
-        };
+    // Handler pour la sauvegarde
+    const handleSaveClick = async () => {
+        // Marquer tous les champs comme touchés pour afficher les erreurs
+        Object.keys(data).forEach((field) => {
+            markFieldAsTouched(field as keyof FurnitureCreateData);
+        });
 
-        onSave(furnitureData);
-        onOpenChange(false);
+        await handleSubmit(async (formData) => {
+            try {
+                const furnitureData: FurnitureCreate = {
+                    name: formData.name,
+                    description: formData.description,
+                    status: formData.status,
+                    idCategory: formData.idCategory,
+                    quantity: formData.quantity,
+                    ressources: formData.ressources,
+                };
+
+                await onSave(furnitureData);
+                onOpenChange(false);
+            } catch (error: unknown) {
+                // Gérer les erreurs du serveur
+                const errorMessage =
+                    error instanceof Error ? error.message : String(error);
+                if (errorMessage.includes("name")) {
+                    setFieldError("name", "Ce nom de meuble est déjà utilisé");
+                } else if (errorMessage.includes("category")) {
+                    setFieldError("idCategory", "Catégorie invalide");
+                } else if (errorMessage.includes("ressources")) {
+                    setFieldError(
+                        "ressources",
+                        "Une ou plusieurs ressources sont invalides"
+                    );
+                } else {
+                    console.error("Erreur lors de la sauvegarde:", error);
+                }
+            }
+        });
+    };
+
+    // Handler pour fermer le modal
+    const handleClose = () => {
+        if (!isSubmitting && !isLoading) {
+            onOpenChange(false);
+            reset();
+            setSelectedResources([]);
+        }
     };
 
     // Filtrer les ressources disponibles (non encore sélectionnées)
@@ -204,8 +275,15 @@ export function FurnitureModal({
                 )
         ) || [];
 
+    const submitDisabled =
+        !isValid ||
+        isSubmitting ||
+        isLoading ||
+        hasErrors ||
+        selectedResources.length === 0;
+
     return (
-        <Dialog open={open} onOpenChange={onOpenChange}>
+        <Dialog open={open} onOpenChange={handleClose}>
             <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
                 <DialogHeader>
                     <DialogTitle>
@@ -215,43 +293,94 @@ export function FurnitureModal({
                     </DialogTitle>
                     <DialogDescription>
                         {isCreating
-                            ? "Créer un nouveau meuble"
+                            ? "Créer un nouveau meuble dans le système"
                             : `Modification des informations de ${selectedFurniture?.name}`}
                     </DialogDescription>
                 </DialogHeader>
 
-                <div className="space-y-4">
+                <form
+                    onSubmit={(e) => {
+                        e.preventDefault();
+                        handleSaveClick();
+                    }}
+                    className="space-y-4"
+                >
+                    {/* Nom du meuble */}
                     <div className="space-y-2">
-                        <Label htmlFor="name">Nom du meuble</Label>
+                        <Label htmlFor="name">
+                            Nom du meuble
+                            <span className="text-destructive ml-1">*</span>
+                        </Label>
                         <Input
                             id="name"
-                            value={name}
-                            onChange={handleNameChange}
+                            value={data.name || ""}
+                            onChange={handleFieldChange("name")}
+                            onBlur={handleFieldBlur("name")}
                             placeholder="Ex: Canapé 3 places"
+                            className={
+                                errors.name && touched.name
+                                    ? "border-destructive"
+                                    : ""
+                            }
+                            disabled={isSubmitting || isLoading}
                         />
+                        {errors.name && touched.name && (
+                            <p className="text-sm text-destructive">
+                                {errors.name}
+                            </p>
+                        )}
                     </div>
 
+                    {/* Description */}
                     <div className="space-y-2">
-                        <Label htmlFor="description">Description</Label>
+                        <Label htmlFor="description">
+                            Description
+                            <span className="text-destructive ml-1">*</span>
+                        </Label>
                         <textarea
                             id="description"
-                            value={description}
-                            onChange={handleDescriptionChange}
+                            value={data.description || ""}
+                            onChange={handleFieldChange("description")}
+                            onBlur={handleFieldBlur("description")}
                             placeholder="Description détaillée du meuble..."
                             rows={3}
-                            className="flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                            className={`flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 ${
+                                errors.description && touched.description
+                                    ? "border-destructive"
+                                    : ""
+                            }`}
+                            disabled={isSubmitting || isLoading}
                         />
+                        {errors.description && touched.description && (
+                            <p className="text-sm text-destructive">
+                                {errors.description}
+                            </p>
+                        )}
                     </div>
 
+                    {/* Catégorie et Statut */}
                     <div className="space-y-2 w-full flex flex-row gap-2 justify-between">
                         <div className="flex flex-col space-y-2 w-full">
-                            <Label>Catégorie</Label>
+                            <Label>
+                                Catégorie
+                                <span className="text-destructive ml-1">*</span>
+                            </Label>
                             <Select
-                                value={category}
-                                onValueChange={handleCategoryChange}
-                                disabled={isCategoriesLoading}
+                                value={data.idCategory || ""}
+                                onValueChange={handleSelectChange("idCategory")}
+                                disabled={
+                                    isCategoriesLoading ||
+                                    isSubmitting ||
+                                    isLoading
+                                }
                             >
-                                <SelectTrigger>
+                                <SelectTrigger
+                                    className={
+                                        errors.idCategory && touched.idCategory
+                                            ? "border-destructive"
+                                            : ""
+                                    }
+                                >
                                     <SelectValue placeholder="Sélectionner une catégorie" />
                                 </SelectTrigger>
                                 <SelectContent>
@@ -277,14 +406,30 @@ export function FurnitureModal({
                                     )}
                                 </SelectContent>
                             </Select>
+                            {errors.idCategory && touched.idCategory && (
+                                <p className="text-sm text-destructive">
+                                    {errors.idCategory}
+                                </p>
+                            )}
                         </div>
+
                         <div className="flex flex-col space-y-2 w-full">
-                            <Label>Statut</Label>
+                            <Label>
+                                Statut
+                                <span className="text-destructive ml-1">*</span>
+                            </Label>
                             <Select
-                                value={status}
-                                onValueChange={handleStatusChange}
+                                value={data.status || ""}
+                                onValueChange={handleSelectChange("status")}
+                                disabled={isSubmitting || isLoading}
                             >
-                                <SelectTrigger>
+                                <SelectTrigger
+                                    className={
+                                        errors.status && touched.status
+                                            ? "border-destructive"
+                                            : ""
+                                    }
+                                >
                                     <SelectValue placeholder="Sélectionner un statut" />
                                 </SelectTrigger>
                                 <SelectContent>
@@ -298,12 +443,20 @@ export function FurnitureModal({
                                     ))}
                                 </SelectContent>
                             </Select>
+                            {errors.status && touched.status && (
+                                <p className="text-sm text-destructive">
+                                    {errors.status}
+                                </p>
+                            )}
                         </div>
                     </div>
 
                     {/* Section Ressources */}
                     <div className="space-y-4">
-                        <Label>Ressources nécessaires</Label>
+                        <Label>
+                            Ressources nécessaires
+                            <span className="text-destructive ml-1">*</span>
+                        </Label>
 
                         {/* Ressources sélectionnées */}
                         {selectedResources.length > 0 && (
@@ -331,11 +484,13 @@ export function FurnitureModal({
                                                 )
                                             }
                                             className="w-20 h-8"
+                                            disabled={isSubmitting || isLoading}
                                         />
                                         <span className="text-sm text-gray-600">
                                             unités
                                         </span>
                                         <Button
+                                            type="button"
                                             variant="ghost"
                                             size="sm"
                                             onClick={() =>
@@ -344,6 +499,7 @@ export function FurnitureModal({
                                                 )
                                             }
                                             className="h-8 w-8 p-0 text-red-500 hover:text-red-700"
+                                            disabled={isSubmitting || isLoading}
                                         >
                                             <X className="w-4 h-4" />
                                         </Button>
@@ -359,7 +515,9 @@ export function FurnitureModal({
                                 onValueChange={setResourceToAdd}
                                 disabled={
                                     isResourcesLoading ||
-                                    availableResources.length === 0
+                                    availableResources.length === 0 ||
+                                    isSubmitting ||
+                                    isLoading
                                 }
                             >
                                 <SelectTrigger className="flex-1">
@@ -411,44 +569,101 @@ export function FurnitureModal({
                                 }
                                 placeholder="Qté"
                                 className="w-20"
+                                disabled={isSubmitting || isLoading}
                             />
                             <Button
+                                type="button"
                                 variant="outline"
                                 size="sm"
                                 onClick={handleResourceAdd}
                                 disabled={
-                                    !resourceToAdd || resourceQuantity <= 0
+                                    !resourceToAdd ||
+                                    resourceQuantity <= 0 ||
+                                    isSubmitting ||
+                                    isLoading
                                 }
                             >
                                 <Plus className="w-4 h-4" />
                             </Button>
                         </div>
+
+                        {errors.ressources && touched.ressources && (
+                            <p className="text-sm text-destructive">
+                                {errors.ressources}
+                            </p>
+                        )}
+                        {selectedResources.length === 0 && (
+                            <p className="text-sm text-muted-foreground">
+                                Au moins une ressource est requise pour créer un
+                                meuble
+                            </p>
+                        )}
                     </div>
 
+                    {/* Quantité */}
                     <div className="space-y-2">
-                        <Label htmlFor="stock">Quantité</Label>
+                        <Label htmlFor="quantity">
+                            Quantité
+                            <span className="text-destructive ml-1">*</span>
+                        </Label>
                         <Input
-                            id="stock"
+                            id="quantity"
                             type="number"
-                            min="0"
-                            value={stock}
-                            onChange={handleStockChange}
+                            min="1"
+                            value={data.quantity || ""}
+                            onChange={handleQuantityChange}
+                            onBlur={handleFieldBlur("quantity")}
                             placeholder="1"
+                            className={
+                                errors.quantity && touched.quantity
+                                    ? "border-destructive"
+                                    : ""
+                            }
+                            disabled={isSubmitting || isLoading}
                         />
+                        {errors.quantity && touched.quantity && (
+                            <p className="text-sm text-destructive">
+                                {errors.quantity}
+                            </p>
+                        )}
                     </div>
 
-                    <div className="flex justify-end gap-2">
+                    {/* Affichage des erreurs générales */}
+                    {hasErrors && Object.keys(touched).length > 0 && (
+                        <Alert variant="destructive">
+                            <AlertDescription>
+                                Veuillez corriger les erreurs ci-dessus avant de
+                                continuer.
+                            </AlertDescription>
+                        </Alert>
+                    )}
+
+                    {/* Boutons d'action */}
+                    <div className="flex justify-end gap-2 pt-4">
                         <Button
+                            type="button"
                             variant="outline"
-                            onClick={() => onOpenChange(false)}
+                            onClick={handleClose}
+                            disabled={isSubmitting || isLoading}
                         >
                             Annuler
                         </Button>
-                        <Button onClick={handleSave}>
-                            {isCreating ? "Créer" : "Sauvegarder"}
+                        <Button type="submit" disabled={submitDisabled}>
+                            {isSubmitting || isLoading ? (
+                                <>
+                                    <div className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
+                                    {isCreating
+                                        ? "Création..."
+                                        : "Sauvegarde..."}
+                                </>
+                            ) : isCreating ? (
+                                "Créer"
+                            ) : (
+                                "Sauvegarder"
+                            )}
                         </Button>
                     </div>
-                </div>
+                </form>
             </DialogContent>
         </Dialog>
     );

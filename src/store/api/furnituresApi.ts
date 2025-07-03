@@ -1,8 +1,3 @@
-// import {
-//     type AuthResponse,
-//     type LoginCredentials,
-//     type RegisterData,
-// } from "../../types/auth";
 import { API_ENDPOINTS } from "@/services/constants";
 import { baseApi } from "./baseApi";
 import type {

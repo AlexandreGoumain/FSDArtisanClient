@@ -7,12 +7,6 @@ import { useGetAllRessourcesQuery } from "@/store/api/ressourcesApi";
 import { useGetAllSuppliersQuery } from "@/store/api/suppliersApi";
 
 export const Dashboard = () => {
-    //TODO : change charts for 1 or 2 charts
-    //TODO : change the data in the charts
-    //TODO : change or find other data to display in the table, or remove the table
-
-    //TODO : maybe an idea : words with recent changes to have a direct link to the page (history page with the changes and a redirection to the page)
-
     const {
         data: ressources,
         isLoading: isRessourcesLoading,

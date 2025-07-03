@@ -19,8 +19,8 @@ import {
     SidebarMenuItem,
 } from "@/components/ui/sidebar";
 import { useRouting } from "@/hooks/useRouting";
-import { useGetMeUserQuery } from "@/store/api/usersApi";
-import { Error } from "./Error";
+import { useAppSelector } from "@/store/hooks";
+import { selectCurrentUser } from "@/store/slices/authSlice";
 
 const data = {
     navMain: [
@@ -49,23 +49,7 @@ const data = {
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     const { currentPath } = useRouting();
-    const {
-        data: user,
-        isLoading,
-        isError,
-        refetch: refetchMeUser,
-    } = useGetMeUserQuery();
-
-    if (isLoading) return <div>Loading...</div>;
-
-    if (isError)
-        return (
-            <Error
-                title="Erreur lors de la récupération de l'utilisateur"
-                description="Veuillez réessayer plus tard"
-                methods={refetchMeUser}
-            />
-        );
+    const user = useAppSelector(selectCurrentUser);
 
     return (
         <Sidebar collapsible="offcanvas" {...props}>
@@ -90,7 +74,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                 <NavMain items={data.navMain} currentPath={currentPath} />
             </SidebarContent>
             <SidebarFooter>
-                <NavUser user={user?.user} />
+                <NavUser user={user || undefined} />
             </SidebarFooter>
         </Sidebar>
     );

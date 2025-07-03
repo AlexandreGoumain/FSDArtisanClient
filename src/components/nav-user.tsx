@@ -1,14 +1,9 @@
-import {
-    IconDotsVertical,
-    IconLogout,
-    IconUserCircle,
-} from "@tabler/icons-react";
+import { IconDotsVertical, IconLogout } from "@tabler/icons-react";
 
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import {
     DropdownMenu,
     DropdownMenuContent,
-    DropdownMenuGroup,
     DropdownMenuItem,
     DropdownMenuLabel,
     DropdownMenuSeparator,
@@ -21,9 +16,9 @@ import {
     useSidebar,
 } from "@/components/ui/sidebar";
 import { useAuth } from "@/hooks/useAuthRTK";
-import type { UserData } from "@/schemas/auth";
+import type { IAuthUser } from "@/types/auth";
 
-export function NavUser({ user }: { user?: UserData }) {
+export function NavUser({ user }: { user?: IAuthUser }) {
     const { isMobile } = useSidebar();
     const { logout } = useAuth();
 
@@ -85,13 +80,6 @@ export function NavUser({ user }: { user?: UserData }) {
                                 </div>
                             </div>
                         </DropdownMenuLabel>
-                        <DropdownMenuSeparator />
-                        <DropdownMenuGroup>
-                            <DropdownMenuItem>
-                                <IconUserCircle />
-                                Mon compte
-                            </DropdownMenuItem>
-                        </DropdownMenuGroup>
                         <DropdownMenuSeparator />
                         <DropdownMenuItem onClick={handleLogout}>
                             <IconLogout />

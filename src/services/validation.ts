@@ -1,37 +1,4 @@
-import { z, type ZodSchema } from "zod";
-import type { FormValidationResult, ValidationError } from "../types/auth";
-
-export const validateWithZod = <T>(
-    schema: ZodSchema<T>,
-    data: unknown
-): FormValidationResult<T> => {
-    try {
-        const validatedData = schema.parse(data);
-        return {
-            success: true,
-            data: validatedData,
-        };
-    } catch (error) {
-        if (error instanceof z.ZodError) {
-            const errors: ValidationError[] = error.errors.map((err) => ({
-                field: err.path.join("."),
-                message: err.message,
-            }));
-
-            return {
-                success: false,
-                errors,
-            };
-        }
-
-        return {
-            success: false,
-            errors: [
-                { field: "unknown", message: "Erreur de validation inconnue" },
-            ],
-        };
-    }
-};
+import { z } from "zod";
 
 export const formatZodErrors = <T extends Record<string, unknown>>(
     zodError: z.ZodError

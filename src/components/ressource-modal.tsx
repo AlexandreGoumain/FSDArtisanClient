@@ -1,3 +1,4 @@
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import {
     Dialog,
@@ -19,7 +20,9 @@ import {
 import { useGetAllRessourcesCategoriesQuery } from "@/store/api/ressourcesCategoriesApi";
 import { useGetAllSuppliersQuery } from "@/store/api/suppliersApi";
 import type { Ressource } from "@/store/api/types/ressourcesType";
-import { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useMemo } from "react";
+import { useFormValidation } from "../hooks/useValidation";
+import { ressourceCreateSchema, type RessourceCreateData } from "../schemas";
 
 interface RessourceModalProps {
     open: boolean;
@@ -27,19 +30,32 @@ interface RessourceModalProps {
     isCreating: boolean;
     selectedRessource: Ressource | null;
     onSave: (ressourceData: Partial<Ressource>) => void;
+    isLoading?: boolean;
 }
 
-export function RessourceModal({
+export const RessourceModal = React.memo(function RessourceModal({
     open,
     onOpenChange,
     isCreating,
     selectedRessource,
     onSave,
+    isLoading = false,
 }: RessourceModalProps) {
-    const [name, setName] = useState("");
-    const [categoryId, setCategoryId] = useState("");
-    const [supplierId, setSupplierId] = useState("");
-    const [description, setDescription] = useState("");
+    const {
+        data,
+        errors,
+        touched,
+        isSubmitting,
+        isValid,
+        hasErrors,
+        updateField,
+        markFieldAsTouched,
+        validateForm,
+        handleSubmit,
+        reset,
+        setFieldError,
+        setInitialData,
+    } = useFormValidation<RessourceCreateData>(ressourceCreateSchema);
 
     const {
         data: categories,
@@ -53,52 +69,94 @@ export function RessourceModal({
         isError: isSuppliersError,
     } = useGetAllSuppliersQuery();
 
+    // Memoize computed values
+    const submitDisabled = useMemo(
+        () => !isValid || isSubmitting || isLoading || hasErrors,
+        [isValid, isSubmitting, isLoading, hasErrors]
+    );
+
+    // Charger les informations de la ressource (modification) ou réinitialiser (création)
     useEffect(() => {
         if (selectedRessource && open && !isCreating) {
-            setName(selectedRessource.name);
-            setCategoryId(selectedRessource.idCategory);
-            setSupplierId(selectedRessource.idSupplier);
-            setDescription(selectedRessource.description);
+            // Mode modification : pré-remplir les champs SANS déclencher de validation
+            setInitialData({
+                name: selectedRessource.name,
+                description: selectedRessource.description,
+                idCategory: selectedRessource.idCategory,
+                idSupplier: selectedRessource.idSupplier,
+            });
         } else if (open && isCreating) {
-            setName("");
-            setCategoryId("");
-            setSupplierId("");
-            setDescription("");
+            // Mode création : réinitialiser le formulaire
+            reset();
         }
-    }, [selectedRessource, open, isCreating]);
+    }, [selectedRessource, open, isCreating, setInitialData, reset]);
 
-    const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        setName(e.target.value);
-    };
+    // Handler pour les changements de champs texte (memoized)
+    const handleFieldChange = useCallback(
+        (field: keyof Pick<RessourceCreateData, "name" | "description">) =>
+            (e: React.ChangeEvent<HTMLInputElement>) => {
+                const value = e.target.value;
+                updateField(field, value);
+                markFieldAsTouched(field);
+            },
+        [updateField, markFieldAsTouched]
+    );
 
-    const handleCategoryChange = (value: string) => {
-        setCategoryId(value);
-    };
+    // Handler pour les selects (memoized)
+    const handleSelectChange = useCallback(
+        (field: keyof Pick<RessourceCreateData, "idCategory" | "idSupplier">) =>
+            (value: string) => {
+                updateField(field, value);
+                markFieldAsTouched(field);
+            },
+        [updateField, markFieldAsTouched]
+    );
 
-    const handleSupplierChange = (value: string) => {
-        setSupplierId(value);
-    };
+    // Handler pour le blur (validation immédiate) (memoized)
+    const handleFieldBlur = useCallback(
+        (field: keyof RessourceCreateData) => () => {
+            markFieldAsTouched(field);
+            validateForm();
+        },
+        [markFieldAsTouched, validateForm]
+    );
 
-    const handleDescriptionChange = (
-        e: React.ChangeEvent<HTMLInputElement>
-    ) => {
-        setDescription(e.target.value);
-    };
+    // Handler pour la sauvegarde (memoized)
+    const handleSaveClick = useCallback(async () => {
+        await handleSubmit(async (formData) => {
+            try {
+                await onSave(formData);
+                onOpenChange(false);
+            } catch (error: unknown) {
+                // Gérer les erreurs du serveur
+                const errorMessage =
+                    error instanceof Error ? error.message : String(error);
+                if (errorMessage.includes("name")) {
+                    setFieldError(
+                        "name",
+                        "Ce nom de ressource est déjà utilisé"
+                    );
+                } else if (errorMessage.includes("category")) {
+                    setFieldError("idCategory", "Catégorie invalide");
+                } else if (errorMessage.includes("supplier")) {
+                    setFieldError("idSupplier", "Fournisseur invalide");
+                } else {
+                    console.error("Erreur lors de la sauvegarde:", error);
+                }
+            }
+        });
+    }, [handleSubmit, onSave, onOpenChange, setFieldError]);
 
-    const handleSave = () => {
-        const ressourceData = {
-            name,
-            idCategory: categoryId,
-            idSupplier: supplierId,
-            description,
-        };
-
-        onSave(ressourceData);
-        onOpenChange(false);
-    };
+    // Handler pour fermer le modal (memoized)
+    const handleClose = useCallback(() => {
+        if (!isSubmitting && !isLoading) {
+            onOpenChange(false);
+            reset();
+        }
+    }, [isSubmitting, isLoading, onOpenChange, reset]);
 
     return (
-        <Dialog open={open} onOpenChange={onOpenChange}>
+        <Dialog open={open} onOpenChange={handleClose}>
             <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
                 <DialogHeader>
                     <DialogTitle>
@@ -108,39 +166,90 @@ export function RessourceModal({
                     </DialogTitle>
                     <DialogDescription>
                         {isCreating
-                            ? "Créer une nouvelle ressource"
+                            ? "Créer une nouvelle ressource dans le système"
                             : `Modification des informations de ${selectedRessource?.name}`}
                     </DialogDescription>
                 </DialogHeader>
 
-                <div className="space-y-4">
+                <form
+                    onSubmit={(e) => {
+                        e.preventDefault();
+                        handleSaveClick();
+                    }}
+                    className="space-y-4"
+                >
+                    {/* Nom de la ressource */}
                     <div className="space-y-2">
-                        <Label htmlFor="name">Nom de la ressource</Label>
+                        <Label htmlFor="name">
+                            Nom de la ressource
+                            <span className="text-destructive ml-1">*</span>
+                        </Label>
                         <Input
                             id="name"
-                            value={name}
-                            onChange={handleNameChange}
+                            value={data.name || ""}
+                            onChange={handleFieldChange("name")}
+                            onBlur={handleFieldBlur("name")}
                             placeholder="Ex: Planches de chêne"
+                            className={
+                                errors.name && touched.name
+                                    ? "border-destructive"
+                                    : ""
+                            }
+                            disabled={isSubmitting || isLoading}
                         />
-                    </div>
-                    <div className="space-y-2">
-                        <Label htmlFor="description">Description</Label>
-                        <Input
-                            id="description"
-                            value={description}
-                            onChange={handleDescriptionChange}
-                            placeholder="Ex: De 2m à 4m"
-                        />
+                        {errors.name && touched.name && (
+                            <p className="text-sm text-destructive">
+                                {errors.name}
+                            </p>
+                        )}
                     </div>
 
+                    {/* Description */}
                     <div className="space-y-2">
-                        <Label>Catégorie</Label>
+                        <Label htmlFor="description">
+                            Description
+                            <span className="text-destructive ml-1">*</span>
+                        </Label>
+                        <Input
+                            id="description"
+                            value={data.description || ""}
+                            onChange={handleFieldChange("description")}
+                            onBlur={handleFieldBlur("description")}
+                            placeholder="Ex: Planches de chêne massif de 2m à 4m"
+                            className={
+                                errors.description && touched.description
+                                    ? "border-destructive"
+                                    : ""
+                            }
+                            disabled={isSubmitting || isLoading}
+                        />
+                        {errors.description && touched.description && (
+                            <p className="text-sm text-destructive">
+                                {errors.description}
+                            </p>
+                        )}
+                    </div>
+
+                    {/* Catégorie */}
+                    <div className="space-y-2">
+                        <Label>
+                            Catégorie
+                            <span className="text-destructive ml-1">*</span>
+                        </Label>
                         <Select
-                            value={categoryId}
-                            onValueChange={handleCategoryChange}
-                            disabled={isCategoriesLoading}
+                            value={data.idCategory || ""}
+                            onValueChange={handleSelectChange("idCategory")}
+                            disabled={
+                                isCategoriesLoading || isSubmitting || isLoading
+                            }
                         >
-                            <SelectTrigger>
+                            <SelectTrigger
+                                className={
+                                    errors.idCategory && touched.idCategory
+                                        ? "border-destructive"
+                                        : ""
+                                }
+                            >
                                 <SelectValue placeholder="Sélectionner une catégorie" />
                             </SelectTrigger>
                             <SelectContent>
@@ -166,16 +275,33 @@ export function RessourceModal({
                                 )}
                             </SelectContent>
                         </Select>
+                        {errors.idCategory && touched.idCategory && (
+                            <p className="text-sm text-destructive">
+                                {errors.idCategory}
+                            </p>
+                        )}
                     </div>
 
+                    {/* Fournisseur */}
                     <div className="space-y-2">
-                        <Label>Fournisseur</Label>
+                        <Label>
+                            Fournisseur
+                            <span className="text-destructive ml-1">*</span>
+                        </Label>
                         <Select
-                            value={supplierId}
-                            onValueChange={handleSupplierChange}
-                            disabled={isSuppliersLoading}
+                            value={data.idSupplier || ""}
+                            onValueChange={handleSelectChange("idSupplier")}
+                            disabled={
+                                isSuppliersLoading || isSubmitting || isLoading
+                            }
                         >
-                            <SelectTrigger>
+                            <SelectTrigger
+                                className={
+                                    errors.idSupplier && touched.idSupplier
+                                        ? "border-destructive"
+                                        : ""
+                                }
+                            >
                                 <SelectValue placeholder="Sélectionner un fournisseur" />
                             </SelectTrigger>
                             <SelectContent>
@@ -201,21 +327,50 @@ export function RessourceModal({
                                 )}
                             </SelectContent>
                         </Select>
+                        {errors.idSupplier && touched.idSupplier && (
+                            <p className="text-sm text-destructive">
+                                {errors.idSupplier}
+                            </p>
+                        )}
                     </div>
 
-                    <div className="flex justify-end gap-2">
+                    {/* Affichage des erreurs générales */}
+                    {hasErrors && Object.keys(touched).length > 0 && (
+                        <Alert variant="destructive">
+                            <AlertDescription>
+                                Veuillez corriger les erreurs ci-dessus avant de
+                                continuer.
+                            </AlertDescription>
+                        </Alert>
+                    )}
+
+                    {/* Boutons d'action */}
+                    <div className="flex justify-end gap-2 pt-4">
                         <Button
+                            type="button"
                             variant="outline"
-                            onClick={() => onOpenChange(false)}
+                            onClick={handleClose}
+                            disabled={isSubmitting || isLoading}
                         >
                             Annuler
                         </Button>
-                        <Button onClick={handleSave}>
-                            {isCreating ? "Créer" : "Sauvegarder"}
+                        <Button type="submit" disabled={submitDisabled}>
+                            {isSubmitting || isLoading ? (
+                                <>
+                                    <div className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
+                                    {isCreating
+                                        ? "Création..."
+                                        : "Sauvegarde..."}
+                                </>
+                            ) : isCreating ? (
+                                "Créer"
+                            ) : (
+                                "Sauvegarder"
+                            )}
                         </Button>
                     </div>
-                </div>
+                </form>
             </DialogContent>
         </Dialog>
     );
-}
+});
