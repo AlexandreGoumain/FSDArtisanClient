@@ -1,14 +1,11 @@
 import { Navigate } from "react-router-dom";
 
-import { Layout } from "@/components/layout/layout";
-import { Login } from "@/pages/auth/login";
-import { Register } from "@/pages/auth/register";
-import { DetailledFurniture } from "@/pages/furnitures/detailledFurniture";
-import { Furnitures } from "@/pages/furnitures/furnitures";
-import { Dashboard } from "@/pages/home/dashboard";
-import { Ressources } from "@/pages/ressources/ressources";
-import { Suppliers } from "@/pages/suppliers/suppliers";
-import { DetailledRessource } from "@/pages/ressources/detailledRessource";
+import { Layout } from "@/components/layout";
+import { Login, Register } from "@/pages/auth";
+import { DetailledFurniture, Furnitures } from "@/pages/furnitures";
+import { Dashboard } from "@/pages/home";
+import { DetailledRessource, Ressources } from "@/pages/ressources";
+import { Suppliers } from "@/pages/suppliers";
 
 export const privateRoutes = [
     {

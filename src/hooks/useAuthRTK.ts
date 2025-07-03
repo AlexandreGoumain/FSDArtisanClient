@@ -1,20 +1,26 @@
 import { useEffect } from "react";
+
+import { handleApiError } from "@/store/api/baseApi";
+
+import type { LoginCredentials, RegisterData } from "@/types/auth";
+
 import {
+    useLazyGetMeUserQuery,
     useLoginMutation,
     useLogoutMutation,
     useRegisterMutation,
-} from "../store/api/authApi";
-import { handleApiError } from "../store/api/baseApi";
-import { useLazyGetMeUserQuery } from "../store/api/usersApi";
-import { useAppDispatch, useAppSelector } from "../store/hooks";
+} from "@/store/api";
+
+import { persistor } from "@/store/store";
+
+import { useAppDispatch, useAppSelector } from "@/store/hooks";
+
 import {
     forceLogout,
     selectCurrentUser,
     selectIsAuthenticated,
     selectIsAuthInitialized,
-} from "../store/slices/authSlice";
-import { persistor } from "../store/store";
-import { type LoginCredentials, type RegisterData } from "../types/auth";
+} from "@/store/slices/authSlice";
 
 export const useAuth = () => {
     // État depuis Redux

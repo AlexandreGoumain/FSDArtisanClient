@@ -1,4 +1,5 @@
-import * as React from "react";
+import { useEffect, useState } from "react";
+
 import {
     Area,
     AreaChart,
@@ -30,15 +31,16 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select";
+
+import { Error } from "@/components/Error";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { useIsMobile } from "@/hooks/use-mobile";
 
-import { useGetAllFurnituresQuery } from "@/store/api/furnituresApi";
-import { useGetAllRessourcesQuery } from "@/store/api/ressourcesApi";
-import { useGetAllSuppliersQuery } from "@/store/api/suppliersApi";
-import { Error } from "./Error";
-
-export const description = "Interactive charts with real API data";
+import {
+    useGetAllFurnituresQuery,
+    useGetAllRessourcesQuery,
+    useGetAllSuppliersQuery,
+} from "@/store/api";
 
 const chartConfig = {
     furnitures: {
@@ -88,9 +90,9 @@ export function ChartAreaInteractive() {
     } = useGetAllSuppliersQuery();
 
     const isMobile = useIsMobile();
-    const [timeRange, setTimeRange] = React.useState("90d");
+    const [timeRange, setTimeRange] = useState("90d");
 
-    React.useEffect(() => {
+    useEffect(() => {
         if (isMobile) {
             setTimeRange("7d");
         }

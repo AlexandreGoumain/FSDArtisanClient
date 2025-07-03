@@ -6,10 +6,6 @@ import {
     quantitySchema,
 } from "./common";
 
-// =============================================================================
-// 🪑 FURNITURES SCHEMAS
-// =============================================================================
-
 // Status enum validation
 export const furnitureStatusSchema = z.enum(
     ["waiting", "in_production", "ready_to_sell"],

@@ -15,7 +15,9 @@ import {
     SidebarMenuItem,
     useSidebar,
 } from "@/components/ui/sidebar";
+
 import { useAuth } from "@/hooks/useAuthRTK";
+
 import type { IAuthUser } from "@/types/auth";
 
 export function NavUser({ user }: { user?: IAuthUser }) {

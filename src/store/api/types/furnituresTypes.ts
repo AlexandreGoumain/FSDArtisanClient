@@ -1,4 +1,4 @@
-export type Ressource = {
+export type FurnitureRessource = {
     idRessource: string;
     quantity: number;
     _id: string;
@@ -10,7 +10,7 @@ export type Furniture = {
     description?: string;
     quantity: number;
     idCategory: string;
-    ressources: Ressource[];
+    ressources: FurnitureRessource[];
     status: string;
     createdAt: string;
     updatedAt: string;
@@ -22,7 +22,7 @@ export type FurnitureCreate = {
     name: string;
     description?: string;
     idCategory: string;
-    ressources: Partial<Ressource>[];
+    ressources: Partial<FurnitureRessource>[];
     quantity: number;
     status: FurnitureStatus;
 };

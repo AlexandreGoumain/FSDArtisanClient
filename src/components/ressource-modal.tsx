@@ -1,5 +1,10 @@
+import React, { useCallback, useEffect, useMemo } from "react";
+
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+
 import {
     Dialog,
     DialogContent,
@@ -7,8 +12,6 @@ import {
     DialogHeader,
     DialogTitle,
 } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import {
     Select,
     SelectContent,
@@ -17,12 +20,14 @@ import {
     SelectValue,
 } from "@/components/ui/select";
 
-import { useGetAllRessourcesCategoriesQuery } from "@/store/api/ressourcesCategoriesApi";
-import { useGetAllSuppliersQuery } from "@/store/api/suppliersApi";
-import type { Ressource } from "@/store/api/types/ressourcesType";
-import React, { useCallback, useEffect, useMemo } from "react";
-import { useFormValidation } from "../hooks/useValidation";
-import { ressourceCreateSchema, type RessourceCreateData } from "../schemas";
+import {
+    useGetAllRessourcesCategoriesQuery,
+    useGetAllSuppliersQuery,
+} from "@/store/api";
+import type { Ressource } from "@/store/api/types";
+
+import { useFormValidation } from "@/hooks/useValidation";
+import { ressourceCreateSchema, type RessourceCreateData } from "@/schemas";
 
 interface RessourceModalProps {
     open: boolean;
@@ -78,7 +83,6 @@ export const RessourceModal = React.memo(function RessourceModal({
     // Charger les informations de la ressource (modification) ou réinitialiser (création)
     useEffect(() => {
         if (selectedRessource && open && !isCreating) {
-            // Mode modification : pré-remplir les champs SANS déclencher de validation
             setInitialData({
                 name: selectedRessource.name,
                 description: selectedRessource.description,

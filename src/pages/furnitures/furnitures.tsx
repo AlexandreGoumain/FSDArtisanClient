@@ -1,3 +1,12 @@
+import { Plus, Search, Trash2 } from "lucide-react";
+import { useState } from "react";
+
+import { Error } from "@/components/Error";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Card } from "./components/Card";
+import { FurnitureModal } from "./components/FurnitureModal";
+
 import {
     AlertDialog,
     AlertDialogAction,
@@ -8,8 +17,6 @@ import {
     AlertDialogHeader,
     AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import {
     Select,
     SelectContent,
@@ -17,24 +24,20 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select";
-import { Plus, Search, Trash2 } from "lucide-react";
-import { useState } from "react";
-import { Card } from "./components/Card";
-import { FurnitureModal } from "./components/FurnitureModal";
 
-import { Error } from "@/components/Error";
-import { useGetAllFurnitureCategoriesQuery } from "@/store/api/furnitureCategoriesApi";
 import {
     useCreateFurnitureMutation,
     useDeleteFurnitureMutation,
+    useGetAllFurnitureCategoriesQuery,
     useGetAllFurnituresQuery,
     useUpdateFurnitureMutation,
-} from "@/store/api/furnituresApi";
+} from "@/store/api";
+
 import type {
     Furniture,
     FurnitureCreate,
     FurnitureUpdate,
-} from "@/store/api/types/furnituresTypes";
+} from "@/store/api/types";
 
 export const Furnitures = () => {
     const {
@@ -96,9 +99,12 @@ export const Furnitures = () => {
             await deleteFurniture(selectedFurniture._id).unwrap();
             setOpenAlert(false);
             setSelectedFurniture(null);
-        } catch (error) {
-            console.error("Erreur lors de la suppression:", error);
-            // TODO: Afficher un message d'erreur à l'utilisateur
+        } catch {
+            <Error
+                title="Erreur lors de la suppression"
+                description="Veuillez réessayer plus tard"
+                methods={refetchFurnitures}
+            />;
         }
     };
 
@@ -122,8 +128,7 @@ export const Furnitures = () => {
             setOpenDialog(false);
             setSelectedFurniture(null);
             setIsCreatingMode(false);
-        } catch (error: unknown) {
-            console.error("Erreur lors de la sauvegarde:", error);
+        } catch {
             <Error
                 title="Erreur lors de la sauvegarde"
                 description="Veuillez réessayer plus tard"

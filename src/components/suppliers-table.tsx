@@ -1,3 +1,6 @@
+import { Edit, MoreHorizontal, Plus, Search, Trash2 } from "lucide-react";
+import { useState } from "react";
+
 import {
     Table,
     TableBody,
@@ -6,12 +9,13 @@ import {
     TableHeader,
     TableRow,
 } from "@/components/ui/table";
-import { Edit, MoreHorizontal, Plus, Search, Trash2 } from "lucide-react";
-import { useState } from "react";
 
 import { Error } from "@/components/Error";
+import { SupplierModal } from "@/components/supplier-modal";
 import { Badge } from "@/components/ui/badge";
-import { SupplierModal } from "./supplier-modal";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+
 import {
     AlertDialog,
     AlertDialogAction,
@@ -22,14 +26,12 @@ import {
     AlertDialogHeader,
     AlertDialogTitle,
 } from "./ui/alert-dialog";
-import { Button } from "./ui/button";
 import {
     DropdownMenu,
     DropdownMenuContent,
     DropdownMenuItem,
     DropdownMenuTrigger,
 } from "./ui/dropdown-menu";
-import { Input } from "./ui/input";
 import {
     Select,
     SelectContent,
@@ -38,17 +40,16 @@ import {
     SelectValue,
 } from "./ui/select";
 
-// API imports
+import type { Supplier, SupplierCreate } from "@/store/api/types";
+
 import {
     useCreateSupplierMutation,
     useDeleteSupplierMutation,
+    useGetAllRessourcesCategoriesQuery,
+    useGetAllRessourcesQuery,
     useGetAllSuppliersQuery,
     useUpdateSupplierMutation,
-} from "@/store/api/suppliersApi";
-import type { Supplier, SupplierCreate } from "@/store/api/types/suppliersType";
-
-import { useGetAllRessourcesQuery } from "@/store/api/ressourcesApi";
-import { useGetAllRessourcesCategoriesQuery } from "@/store/api/ressourcesCategoriesApi";
+} from "@/store/api";
 
 // Définition des catégories
 

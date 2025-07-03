@@ -1,5 +1,9 @@
+import { Edit, Eye, MoreVertical, Trash2 } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+
 import {
     CardContent,
     CardDescription,
@@ -14,12 +18,10 @@ import {
     DropdownMenuItem,
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import type { Furniture } from "@/store/api/types/furnituresTypes";
-import { Edit, Eye, MoreVertical, Trash2 } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+
+import type { Furniture } from "@/store/api/types";
 
 export const Card = ({
-    //TODO: work on badges
     furniture,
     handleOpenDialog,
     handleOpenAlert,

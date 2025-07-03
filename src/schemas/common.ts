@@ -1,9 +1,5 @@
 import { z } from "zod";
 
-// =============================================================================
-// 🔧 SCHÉMAS DE VALIDATION COMMUNS
-// =============================================================================
-
 // 📧 Validation email générique
 export const businessEmailSchema = z
     .string()

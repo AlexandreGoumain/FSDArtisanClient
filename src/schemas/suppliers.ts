@@ -6,10 +6,6 @@ import {
     phoneSchema,
 } from "./common";
 
-// =============================================================================
-// 🏢 SUPPLIERS SCHEMAS
-// =============================================================================
-
 export const supplierCreateSchema = z.object({
     name: businessNameSchema,
     email: businessEmailSchema,

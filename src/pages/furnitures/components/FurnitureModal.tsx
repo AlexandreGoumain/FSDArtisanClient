@@ -1,6 +1,12 @@
+import { Plus, X } from "lucide-react";
+import { useEffect, useState } from "react";
+
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+
 import {
     Dialog,
     DialogContent,
@@ -8,8 +14,6 @@ import {
     DialogHeader,
     DialogTitle,
 } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import {
     Select,
     SelectContent,
@@ -17,19 +21,19 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select";
-import { useGetAllFurnitureCategoriesQuery } from "@/store/api/furnitureCategoriesApi";
-import { useGetAllRessourcesQuery } from "@/store/api/ressourcesApi";
+
+import {
+    useGetAllFurnitureCategoriesQuery,
+    useGetAllRessourcesQuery,
+} from "@/store/api";
+
 import type {
     Furniture,
     FurnitureCreate,
 } from "@/store/api/types/furnituresTypes";
-import { Plus, X } from "lucide-react";
-import { useEffect, useState } from "react";
-import { useFormValidation } from "../../../hooks/useValidation";
-import {
-    furnitureCreateSchema,
-    type FurnitureCreateData,
-} from "../../../schemas";
+
+import { useFormValidation } from "@/hooks/useValidation";
+import { type FurnitureCreateData, furnitureCreateSchema } from "@/schemas";
 
 interface FurnitureModalProps {
     open: boolean;

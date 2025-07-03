@@ -3,7 +3,7 @@ export type Supplier = {
     name: string;
     email: string;
     phone: string;
-    ressourceCategories: string[]; // Array of ressource category IDs (calculé par le backend)
+    ressourceCategories: string[];
     createdAt: string;
     updatedAt: string;
 };

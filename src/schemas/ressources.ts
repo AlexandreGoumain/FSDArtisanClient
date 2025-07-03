@@ -1,10 +1,6 @@
 import { z } from "zod";
 import { businessNameSchema, descriptionSchema, mongoIdSchema } from "./common";
 
-// =============================================================================
-// 🧱 RESSOURCES SCHEMAS
-// =============================================================================
-
 export const ressourceCreateSchema = z.object({
     name: businessNameSchema,
     description: descriptionSchema,

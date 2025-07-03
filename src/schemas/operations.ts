@@ -1,10 +1,6 @@
 import { z } from "zod";
 import { mongoIdSchema } from "./common";
 
-// =============================================================================
-// 📊 BULK OPERATIONS SCHEMAS
-// =============================================================================
-
 // Schema pour les opérations en lot
 export const bulkDeleteSchema = z.object({
     ids: z

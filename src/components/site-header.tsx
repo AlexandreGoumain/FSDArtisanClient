@@ -1,3 +1,5 @@
+import { ChevronRight } from "lucide-react";
+
 import {
     Breadcrumb,
     BreadcrumbItem,
@@ -5,10 +7,10 @@ import {
     BreadcrumbList,
     BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
+
 import { Separator } from "@/components/ui/separator";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { useBreadcrumb } from "@/hooks/useBreadcrumb";
-import { ChevronRight } from "lucide-react";
 
 export function SiteHeader() {
     const { breadcrumbs, navigateTo } = useBreadcrumb();

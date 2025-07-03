@@ -1,10 +1,12 @@
 import { ChartAreaInteractive } from "@/components/chart-area-interactive";
+import { Error } from "@/components/Error";
 import { SectionCards } from "@/components/section-cards";
 
-import { Error } from "@/components/Error";
-import { useGetAllFurnituresQuery } from "@/store/api/furnituresApi";
-import { useGetAllRessourcesQuery } from "@/store/api/ressourcesApi";
-import { useGetAllSuppliersQuery } from "@/store/api/suppliersApi";
+import {
+    useGetAllFurnituresQuery,
+    useGetAllRessourcesQuery,
+    useGetAllSuppliersQuery,
+} from "@/store/api";
 
 export const Dashboard = () => {
     const {

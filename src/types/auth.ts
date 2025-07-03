@@ -1,5 +1,5 @@
 // Import des types inférés depuis les schémas Zod
-import type { UserData } from "../schemas/auth";
+import type { UserData } from "@/schemas/auth";
 
 export type {
     ChangePasswordData,
@@ -9,7 +9,7 @@ export type {
     RegisterFormData as RegisterData,
     ResetPasswordData,
     UpdateProfileData,
-} from "../schemas/auth";
+} from "@/schemas/auth";
 
 // Types de réponse API
 export interface AuthResponse {

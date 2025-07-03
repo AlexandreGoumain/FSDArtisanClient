@@ -1,10 +1,12 @@
 import { useEffect } from "react";
-import { useLazyGetMeUserQuery } from "../store/api/usersApi";
-import { useAppSelector } from "../store/hooks";
+
+import { useLazyGetMeUserQuery } from "@/store/api";
+import { useAppSelector } from "@/store/hooks";
+
 import {
     selectIsAuthInitialized,
     selectIsAuthenticated,
-} from "../store/slices/authSlice";
+} from "@/store/slices/authSlice";
 
 interface AuthGuardProps {
     children: React.ReactNode;

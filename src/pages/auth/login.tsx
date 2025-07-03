@@ -1,21 +1,27 @@
 import { Navigate } from "react-router-dom";
-import { Alert, AlertDescription } from "../../components/ui/alert";
-import { Badge } from "../../components/ui/badge";
-import { Button } from "../../components/ui/button";
+
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+
 import {
     Card,
     CardContent,
     CardDescription,
     CardHeader,
     CardTitle,
-} from "../../components/ui/card";
-import { Input } from "../../components/ui/input";
-import { Label } from "../../components/ui/label";
-import { useAuth } from "../../hooks/useAuthRTK";
-import { useAuthForm } from "../../hooks/useValidation";
-import { loginSchema } from "../../schemas/auth";
-import { useAppSelector } from "../../store/hooks";
-import { selectIsAuthenticated } from "../../store/slices/authSlice";
+} from "@/components/ui/card";
+
+import { useAuth } from "@/hooks/useAuthRTK";
+import { useAuthForm } from "@/hooks/useValidation";
+
+import { loginSchema } from "@/schemas";
+
+import { useAppSelector } from "@/store/hooks";
+
+import { selectIsAuthenticated } from "@/store/slices/authSlice";
 
 export const Login = () => {
     const isAuthenticated = useAppSelector(selectIsAuthenticated);

@@ -9,10 +9,10 @@ import {
     CardHeader,
     CardTitle,
 } from "@/components/ui/card";
+
 import { getDifferencePercentageByPeriod } from "@/lib/utils";
-import type { Furniture } from "@/store/api/types/furnituresTypes";
-import type { Ressource } from "@/store/api/types/ressourcesType";
-import type { Supplier } from "@/store/api/types/suppliersType";
+
+import type { Furniture, Ressource, Supplier } from "@/store/api/types";
 
 const setDescriptionGrowOrDown = (percentage: number) => {
     if (percentage === 0) return "aucune variation";

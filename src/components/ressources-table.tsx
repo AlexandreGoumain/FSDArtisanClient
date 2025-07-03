@@ -1,3 +1,6 @@
+import { Edit, MoreHorizontal, Plus, Search, Trash2 } from "lucide-react";
+import { useState } from "react";
+
 import {
     Table,
     TableBody,
@@ -6,12 +9,13 @@ import {
     TableHeader,
     TableRow,
 } from "@/components/ui/table";
-import { Edit, MoreHorizontal, Plus, Search, Trash2 } from "lucide-react";
-import { useState } from "react";
 
 import { Error } from "@/components/Error";
 import { Badge } from "@/components/ui/badge";
 import { RessourceModal } from "./ressource-modal";
+import { Button } from "./ui/button";
+import { Input } from "./ui/input";
+
 import {
     AlertDialog,
     AlertDialogAction,
@@ -22,14 +26,12 @@ import {
     AlertDialogHeader,
     AlertDialogTitle,
 } from "./ui/alert-dialog";
-import { Button } from "./ui/button";
 import {
     DropdownMenu,
     DropdownMenuContent,
     DropdownMenuItem,
     DropdownMenuTrigger,
 } from "./ui/dropdown-menu";
-import { Input } from "./ui/input";
 import {
     Select,
     SelectContent,
@@ -48,12 +50,9 @@ import {
 } from "@/store/api/ressourcesApi";
 import { useGetAllRessourcesCategoriesQuery } from "@/store/api/ressourcesCategoriesApi";
 import { useGetAllSuppliersQuery } from "@/store/api/suppliersApi";
-import type {
-    Ressource,
-    RessourceCreate,
-} from "@/store/api/types/ressourcesType";
+import type { Ressource, RessourceCreate } from "@/store/api/types";
 
-export function RessourcesTable() {
+export const RessourcesTable = () => {
     // État local
     const [openDialog, setOpenDialog] = useState(false);
     const [openAlert, setOpenAlert] = useState(false);
@@ -465,4 +464,4 @@ export function RessourcesTable() {
             </AlertDialog>
         </>
     );
-}
+};
