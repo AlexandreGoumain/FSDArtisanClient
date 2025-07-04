@@ -513,7 +513,7 @@ export function FurnitureModal({
                         )}
 
                         {/* Ajouter une ressource */}
-                        <div className="flex gap-2">
+                        <div className="flex gap-2 items-center">
                             <Select
                                 value={resourceToAdd}
                                 onValueChange={setResourceToAdd}
@@ -577,7 +577,7 @@ export function FurnitureModal({
                             />
                             <Button
                                 type="button"
-                                variant="outline"
+                                variant="default"
                                 size="sm"
                                 onClick={handleResourceAdd}
                                 disabled={

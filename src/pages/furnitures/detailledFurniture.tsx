@@ -12,14 +12,20 @@ import {
     useGetRessourceByIdQuery,
 } from "@/store/api";
 
-const ResourceItem = ({
+import type { Supplier } from "@/store/api/types";
+
+export const ResourceItem = ({
     idRessource,
     quantity,
+    Supplier,
 }: {
-    idRessource: string;
-    quantity: number;
+    idRessource?: string;
+    quantity?: number;
+    Supplier?: Supplier;
 }) => {
-    const { data: resource, isLoading } = useGetRessourceByIdQuery(idRessource);
+    const { data: resource, isLoading } = useGetRessourceByIdQuery(
+        idRessource || ""
+    );
     const { data: categories } = useGetAllRessourcesCategoriesQuery();
 
     const navigate = useNavigate();
@@ -78,21 +84,39 @@ const ResourceItem = ({
 
     return (
         <div className="flex items-start gap-3 p-3 bg-orange-50 rounded-lg border border-orange-200">
-            <div className="text-lg">{icon}</div>
+            {idRessource && <div className="text-lg">{icon}</div>}
             <div className="flex-1">
                 <div className="flex items-center justify-between">
                     <h4 className="font-medium text-gray-900">
-                        {resource.name}
+                        {idRessource ? resource.name : Supplier?.name}
                     </h4>
-                    <span className="text-sm font-semibold text-orange-600">
-                        {quantity} {quantity > 1 ? "unités" : "unité"}
-                    </span>
+                    {idRessource && quantity && (
+                        <span className="text-sm font-semibold text-orange-600">
+                            {quantity} {quantity > 1 ? "unités" : "unité"}
+                        </span>
+                    )}
                 </div>
-                <p className="text-xs text-gray-600 mt-1">
-                    {resource.description}
-                </p>
-                <Button onClick={() => navigate(`/ressources/${resource._id}`)}>
-                    {">"}
+                {idRessource && (
+                    <p className="text-xs text-gray-600 mt-1">
+                        {resource.description}
+                    </p>
+                )}
+                {Supplier && (
+                    <p className="text-xs text-gray-600 mt-1">
+                        {Supplier.name}
+                    </p>
+                )}
+                <Button
+                    className="mt-2"
+                    variant={"outline"}
+                    size={"sm"}
+                    onClick={() =>
+                        idRessource
+                            ? navigate(`/ressources/${resource._id}`)
+                            : navigate(`/suppliers`)
+                    }
+                >
+                    {idRessource ? "Voir la ressource" : "Voir le fournisseur"}
                 </Button>
             </div>
         </div>

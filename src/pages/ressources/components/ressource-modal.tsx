@@ -26,6 +26,7 @@ import {
 } from "@/store/api";
 import type { Ressource } from "@/store/api/types";
 
+import { Textarea } from "@/components/ui/textarea";
 import { useFormValidation } from "@/hooks/useValidation";
 import { ressourceCreateSchema, type RessourceCreateData } from "@/schemas";
 
@@ -98,7 +99,7 @@ export const RessourceModal = React.memo(function RessourceModal({
     // Handler pour les changements de champs texte (memoized)
     const handleFieldChange = useCallback(
         (field: keyof Pick<RessourceCreateData, "name" | "description">) =>
-            (e: React.ChangeEvent<HTMLInputElement>) => {
+            (e: React.ChangeEvent<HTMLTextAreaElement | HTMLInputElement>) => {
                 const value = e.target.value;
                 updateField(field, value);
                 markFieldAsTouched(field);
@@ -214,7 +215,7 @@ export const RessourceModal = React.memo(function RessourceModal({
                             Description
                             <span className="text-destructive ml-1">*</span>
                         </Label>
-                        <Input
+                        <Textarea
                             id="description"
                             value={data.description || ""}
                             onChange={handleFieldChange("description")}

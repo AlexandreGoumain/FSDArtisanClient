@@ -40,6 +40,8 @@ import type {
 } from "@/store/api/types";
 
 export const Furnitures = () => {
+    //TODO: rework des staus (création / modification ) - (cohérence avec le back)
+
     const {
         data: furnitures,
         isLoading,

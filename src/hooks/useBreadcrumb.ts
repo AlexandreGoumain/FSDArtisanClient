@@ -26,7 +26,6 @@ export const useBreadcrumb = () => {
 
             let label = segment;
 
-            // Mapper les routes vers des labels français
             const routeLabels: Record<string, string> = {
                 furnitures: "Meubles",
                 suppliers: "Fournisseurs",
@@ -37,16 +36,11 @@ export const useBreadcrumb = () => {
                 dashboard: "Tableau de bord",
                 auth: "Authentification",
                 login: "Connexion",
-                register: "Inscription",
             };
 
             if (routeLabels[segment]) {
                 label = routeLabels[segment];
-            } else if (/^\d+$/.test(segment)) {
-                // Si c'est un ID numérique
-                label = `Détail #${segment}`;
             } else {
-                // Capitaliser la première lettre
                 label = segment.charAt(0).toUpperCase() + segment.slice(1);
             }
 

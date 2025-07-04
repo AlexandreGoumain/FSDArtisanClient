@@ -29,18 +29,27 @@ export function SectionCards({
     furnitures: Furniture[];
     suppliers: Supplier[];
 }) {
+    const getTotalFurnitureQuantity = () => {
+        return furnitures.reduce(
+            (total, furniture) => total + furniture.quantity,
+            0
+        );
+    };
+
+    const totalFurnitureQuantity = getTotalFurnitureQuantity();
+
     const data = [
         {
             title: "Total Meubles",
-            value: furnitures.length,
+            value: totalFurnitureQuantity,
             percentageGrowThisMonth: getDifferencePercentageByPeriod(
-                furnitures.length,
-                furnitures.length + 10
+                totalFurnitureQuantity,
+                totalFurnitureQuantity + 10
             ),
             description: setDescriptionGrowOrDown(
                 getDifferencePercentageByPeriod(
-                    furnitures.length,
-                    furnitures.length - 5
+                    totalFurnitureQuantity,
+                    totalFurnitureQuantity - 5
                 ).percentage
             ),
             icon: SofaIcon,

@@ -8,7 +8,6 @@ import {
     CardContent,
     CardDescription,
     CardFooter,
-    CardHeader,
     CardTitle,
     Card as ShadCard,
 } from "@/components/ui/card";
@@ -34,13 +33,6 @@ export const Card = ({
 
     return (
         <ShadCard className="flex flex-col gap-4 hover:shadow-lg transition-shadow duration-200 ease-in-out">
-            <CardHeader>
-                {/* <img
-                    src={image || ""}
-                    alt={furniture.name}
-                    className="h-48 w-full rounded-lg object-cover"
-                /> */}
-            </CardHeader>
             <CardContent>
                 <div className="flex flex-row justify-between gap-2 items-center">
                     <CardTitle>{furniture.name}</CardTitle>
@@ -52,12 +44,17 @@ export const Card = ({
                                 navigate(`/furnitures/${furniture._id}`)
                             }
                             title="Voir les détails"
+                            className="cursor-pointer"
                         >
                             <Eye className="w-4 h-4" />
                         </Button>
                         <DropdownMenu>
                             <DropdownMenuTrigger asChild>
-                                <Button variant="ghost" size="sm">
+                                <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    className="cursor-pointer"
+                                >
                                     <MoreVertical className="w-4 h-4" />
                                 </Button>
                             </DropdownMenuTrigger>
