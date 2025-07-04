@@ -1,9 +1,9 @@
 import { useEffect } from "react";
 
-import { Alert, AlertDescription } from "./ui/alert";
-import { Button } from "./ui/button";
-import { Input } from "./ui/input";
-import { Label } from "./ui/label";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 
 import {
     Dialog,
@@ -11,7 +11,7 @@ import {
     DialogDescription,
     DialogHeader,
     DialogTitle,
-} from "./ui/dialog";
+} from "@/components/ui/dialog";
 
 import { useFormValidation } from "@/hooks/useValidation";
 import { supplierCreateSchema, type SupplierCreateData } from "@/schemas";

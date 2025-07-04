@@ -12,9 +12,9 @@ import {
 
 import { Error } from "@/components/Error";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "../../../components/ui/button";
+import { Input } from "../../../components/ui/input";
 import { RessourceModal } from "./ressource-modal";
-import { Button } from "./ui/button";
-import { Input } from "./ui/input";
 
 import {
     AlertDialog,
@@ -25,20 +25,20 @@ import {
     AlertDialogFooter,
     AlertDialogHeader,
     AlertDialogTitle,
-} from "./ui/alert-dialog";
+} from "../../../components/ui/alert-dialog";
 import {
     DropdownMenu,
     DropdownMenuContent,
     DropdownMenuItem,
     DropdownMenuTrigger,
-} from "./ui/dropdown-menu";
+} from "../../../components/ui/dropdown-menu";
 import {
     Select,
     SelectContent,
     SelectItem,
     SelectTrigger,
     SelectValue,
-} from "./ui/select";
+} from "../../../components/ui/select";
 
 // API imports
 import { useGetAllFurnituresQuery } from "@/store/api/furnituresApi";
@@ -53,7 +53,6 @@ import { useGetAllSuppliersQuery } from "@/store/api/suppliersApi";
 import type { Ressource, RessourceCreate } from "@/store/api/types";
 
 export const RessourcesTable = () => {
-    // État local
     const [openDialog, setOpenDialog] = useState(false);
     const [openAlert, setOpenAlert] = useState(false);
     const [isCreating, setIsCreating] = useState(false);

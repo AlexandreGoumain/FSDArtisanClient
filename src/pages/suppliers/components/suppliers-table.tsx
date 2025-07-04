@@ -11,10 +11,11 @@ import {
 } from "@/components/ui/table";
 
 import { Error } from "@/components/Error";
-import { SupplierModal } from "@/components/supplier-modal";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+
+import { SupplierModal } from "./supplier-modal";
 
 import {
     AlertDialog,
@@ -25,20 +26,20 @@ import {
     AlertDialogFooter,
     AlertDialogHeader,
     AlertDialogTitle,
-} from "./ui/alert-dialog";
+} from "@/components/ui/alert-dialog";
 import {
     DropdownMenu,
     DropdownMenuContent,
     DropdownMenuItem,
     DropdownMenuTrigger,
-} from "./ui/dropdown-menu";
+} from "@/components/ui/dropdown-menu";
 import {
     Select,
     SelectContent,
     SelectItem,
     SelectTrigger,
     SelectValue,
-} from "./ui/select";
+} from "@/components/ui/select";
 
 import type { Supplier, SupplierCreate } from "@/store/api/types";
 
@@ -50,8 +51,6 @@ import {
     useGetAllSuppliersQuery,
     useUpdateSupplierMutation,
 } from "@/store/api";
-
-// Définition des catégories
 
 export function SuppliersTable() {
     // État local
@@ -314,18 +313,20 @@ export function SuppliersTable() {
                                                         Aucune catégorie
                                                     </span>
                                                 ) : (
-                                                    supplier.ressourceCategories.map(
-                                                        (categoryId) => (
-                                                            <Badge
-                                                                key={categoryId}
-                                                                className="text-xs"
-                                                            >
-                                                                {getCategoryName(
-                                                                    categoryId
-                                                                )}
-                                                            </Badge>
+                                                    Array.from(
+                                                        new Set(
+                                                            supplier.ressourceCategories
                                                         )
-                                                    )
+                                                    ).map((categoryId) => (
+                                                        <Badge
+                                                            key={categoryId}
+                                                            className="text-xs"
+                                                        >
+                                                            {getCategoryName(
+                                                                categoryId
+                                                            )}
+                                                        </Badge>
+                                                    ))
                                                 )}
                                             </div>
                                         </TableCell>

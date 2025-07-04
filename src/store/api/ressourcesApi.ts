@@ -1,16 +1,12 @@
-// import {
-//     type AuthResponse,
-//     type LoginCredentials,
-//     type RegisterData,
-// } from "../../types/auth";
 import { API_ENDPOINTS } from "@/services/constants";
-import { baseApi } from "./baseApi";
+import { baseApi } from "@/store/api/baseApi";
+
 import type {
     Ressource,
     RessourceCreate,
     RessourceDelete,
     RessourceUpdate,
-} from "./types/ressourcesType";
+} from "@/store/api/types";
 
 export const ressourcesApi = baseApi.injectEndpoints({
     endpoints: (builder) => ({

@@ -1,6 +1,6 @@
 import { ChartAreaInteractive } from "@/components/chart-area-interactive";
 import { Error } from "@/components/Error";
-import { SectionCards } from "@/components/section-cards";
+import { SectionCards } from "@/pages/home/components/section-cards";
 
 import {
     useGetAllFurnituresQuery,

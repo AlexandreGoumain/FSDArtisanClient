@@ -38,6 +38,10 @@ export const privateRoutes = [
             },
         ],
     },
+    {
+        path: "*",
+        element: <Navigate to="/" replace />,
+    },
 ];
 
 export const publicRoutes = [

@@ -1,4 +1,4 @@
-import { SuppliersTable } from "@/components/suppliers-table";
+import { SuppliersTable } from "@/pages/suppliers/components/suppliers-table";
 
 export const Suppliers = () => {
     return (
