@@ -5,6 +5,12 @@ import { useNavigate, useParams } from "react-router-dom";
 import { Error } from "@/components/Error";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import {
+    getFurnitureStatusBadgeClassName,
+    getFurnitureStatusBadgeVariant,
+    translateFurnitureStatus,
+    type FurnitureStatusValue,
+} from "@/lib/utils";
 
 import {
     useGetAllRessourcesCategoriesQuery,
@@ -227,24 +233,16 @@ export const DetailledFurniture = () => {
                     {/* Statut */}
                     <div>
                         <Badge
-                            variant={
-                                furniture.status === "ready_to_sell"
-                                    ? "default"
-                                    : "secondary"
-                            }
-                            className={
-                                furniture.status === "ready_to_sell"
-                                    ? "bg-green-100 text-green-800"
-                                    : furniture.status === "in_production"
-                                    ? "bg-yellow-100 text-yellow-800"
-                                    : "bg-gray-100 text-gray-800"
-                            }
+                            variant={getFurnitureStatusBadgeVariant(
+                                furniture.status as FurnitureStatusValue
+                            )}
+                            className={getFurnitureStatusBadgeClassName(
+                                furniture.status as FurnitureStatusValue
+                            )}
                         >
-                            {furniture.status === "ready_to_sell"
-                                ? "Prêt à vendre"
-                                : furniture.status === "in_production"
-                                ? "En production"
-                                : "En attente"}{" "}
+                            {translateFurnitureStatus(
+                                furniture.status as FurnitureStatusValue
+                            )}{" "}
                             - {furniture.quantity} unités
                         </Badge>
                     </div>

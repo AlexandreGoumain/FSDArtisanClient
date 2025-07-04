@@ -33,6 +33,9 @@ import type {
 } from "@/store/api/types/furnituresTypes";
 
 import { useFormValidation } from "@/hooks/useValidation";
+
+import { FURNITURE_STATUS_OPTIONS } from "@/lib/utils";
+
 import { type FurnitureCreateData, furnitureCreateSchema } from "@/schemas";
 
 interface FurnitureModalProps {
@@ -43,12 +46,6 @@ interface FurnitureModalProps {
     onSave: (furnitureData: FurnitureCreate) => void;
     isLoading?: boolean;
 }
-
-const statusOptions = [
-    { value: "waiting", label: "En attente" },
-    { value: "in_production", label: "En production" },
-    { value: "ready_to_sell", label: "Prêt à vendre" },
-];
 
 type SelectedResource = {
     idRessource: string;
@@ -128,8 +125,14 @@ export function FurnitureModal({
             );
             setSelectedResources(furnitureResources);
         } else if (open && isCreating) {
-            // Mode création : réinitialiser le formulaire
-            reset();
+            setInitialData({
+                name: "",
+                description: "",
+                status: "waiting", // Valeur par défaut
+                idCategory: "",
+                quantity: 1,
+                ressources: [],
+            });
             setSelectedResources([]);
         }
         setResourceToAdd("");
@@ -437,14 +440,16 @@ export function FurnitureModal({
                                     <SelectValue placeholder="Sélectionner un statut" />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    {statusOptions.map((statusOption) => (
-                                        <SelectItem
-                                            key={statusOption.value}
-                                            value={statusOption.value}
-                                        >
-                                            {statusOption.label}
-                                        </SelectItem>
-                                    ))}
+                                    {FURNITURE_STATUS_OPTIONS.map(
+                                        (statusOption) => (
+                                            <SelectItem
+                                                key={statusOption.value}
+                                                value={statusOption.value}
+                                            >
+                                                {statusOption.label}
+                                            </SelectItem>
+                                        )
+                                    )}
                                 </SelectContent>
                             </Select>
                             {errors.status && touched.status && (

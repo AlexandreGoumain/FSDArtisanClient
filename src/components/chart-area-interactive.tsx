@@ -19,10 +19,10 @@ import {
     CardTitle,
 } from "@/components/ui/card";
 import {
-    type ChartConfig,
     ChartContainer,
     ChartTooltip,
     ChartTooltipContent,
+    type ChartConfig,
 } from "@/components/ui/chart";
 import {
     Select,
@@ -41,6 +41,8 @@ import {
     useGetAllRessourcesQuery,
     useGetAllSuppliersQuery,
 } from "@/store/api";
+
+import { translateFurnitureStatus } from "@/lib/utils";
 
 const chartConfig = {
     furnitures: {
@@ -190,17 +192,17 @@ export function ChartAreaInteractive() {
             {
                 status: "waiting",
                 count: statusCounts.waiting,
-                label: "En attente",
+                label: translateFurnitureStatus("waiting"),
             },
             {
                 status: "in_production",
                 count: statusCounts.in_production,
-                label: "En production",
+                label: translateFurnitureStatus("in_production"),
             },
             {
                 status: "ready_to_sell",
                 count: statusCounts.ready_to_sell,
-                label: "Prêt à vendre",
+                label: translateFurnitureStatus("ready_to_sell"),
             },
         ];
     };

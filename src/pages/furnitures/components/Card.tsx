@@ -3,6 +3,10 @@ import { useNavigate } from "react-router-dom";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import {
+    translateFurnitureStatus,
+    type FurnitureStatusValue,
+} from "@/lib/utils";
 
 import {
     CardContent,
@@ -82,7 +86,11 @@ export const Card = ({
                 </CardDescription>
             </CardContent>
             <CardFooter>
-                <Badge variant="outline">{furniture.status}</Badge>
+                <Badge variant="outline">
+                    {translateFurnitureStatus(
+                        furniture.status as FurnitureStatusValue
+                    )}
+                </Badge>
             </CardFooter>
         </ShadCard>
     );

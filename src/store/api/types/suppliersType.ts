@@ -3,7 +3,7 @@ export type Supplier = {
     name: string;
     email: string;
     phone: string;
-    ressourceCategories: string[];
+    uniqueObjectIds: string[];
     createdAt: string;
     updatedAt: string;
 };
