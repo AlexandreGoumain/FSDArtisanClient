@@ -200,7 +200,8 @@ export function SuppliersTable() {
             supplier.email.toLowerCase().includes(searchTerm.toLowerCase());
         const matchesCategory =
             categoryFilter === "all" ||
-            supplier.ressourceCategories.includes(categoryFilter);
+            (supplier.uniqueObjectIds &&
+                supplier.uniqueObjectIds.includes(categoryFilter));
 
         return matchesSearch && matchesCategory;
     });
@@ -307,7 +308,8 @@ export function SuppliersTable() {
                                         </TableCell>
                                         <TableCell>
                                             <div className="flex flex-wrap gap-1">
-                                                {supplier.ressourceCategories
+                                                {!supplier.uniqueObjectIds ||
+                                                supplier.uniqueObjectIds
                                                     .length === 0 ? (
                                                     <span className="text-sm text-muted-foreground">
                                                         Aucune catégorie
@@ -315,7 +317,7 @@ export function SuppliersTable() {
                                                 ) : (
                                                     Array.from(
                                                         new Set(
-                                                            supplier.ressourceCategories
+                                                            supplier.uniqueObjectIds
                                                         )
                                                     ).map((categoryId) => (
                                                         <Badge

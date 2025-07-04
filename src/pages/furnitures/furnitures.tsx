@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Error } from "@/components/Error";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { FURNITURE_STATUS_OPTIONS } from "@/lib/utils";
 import { Card } from "./components/Card";
 import { FurnitureModal } from "./components/FurnitureModal";
 
@@ -40,8 +41,6 @@ import type {
 } from "@/store/api/types";
 
 export const Furnitures = () => {
-    //TODO: rework des staus (création / modification ) - (cohérence avec le back)
-
     const {
         data: furnitures,
         isLoading,
@@ -227,13 +226,14 @@ export const Furnitures = () => {
                             <SelectItem value="all">
                                 Tous les statuts
                             </SelectItem>
-                            <SelectItem value="waiting">En attente</SelectItem>
-                            <SelectItem value="in_production">
-                                En production
-                            </SelectItem>
-                            <SelectItem value="ready_to_sell">
-                                Prêt à vendre
-                            </SelectItem>
+                            {FURNITURE_STATUS_OPTIONS.map((statusOption) => (
+                                <SelectItem
+                                    key={statusOption.value}
+                                    value={statusOption.value}
+                                >
+                                    {statusOption.label}
+                                </SelectItem>
+                            ))}
                         </SelectContent>
                     </Select>
                 </div>
