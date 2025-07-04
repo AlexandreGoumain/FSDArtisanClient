@@ -1,69 +1,66 @@
-# React + TypeScript + Vite
+# FSDArtisanClient
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Ce projet est le **frontend** d'une application de gestion d'atelier d'artisanat/design de meubles, développé avec **React**, **TypeScript** et **Vite**.
 
-Currently, two official plugins are available:
+Il fonctionne de pair avec le backend disponible ici :  
+👉 [https://github.com/ton-org/FSDArtisanServer](https://github.com/ton-org/FSDArtisanServer)
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+---
 
-## Expanding the ESLint configuration
+## Architecture du projet
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+- **src/**
+  - **components/** : Composants réutilisables (modales, tableaux, sidebar, etc.)
+  - **hooks/** : Hooks personnalisés pour la logique métier (auth, validation, navigation...)
+  - **pages/** : Pages principales de l'application (auth, dashboard, meubles, ressources, fournisseurs...)
+  - **router/** : Définition des routes de l'application
+  - **schemas/** : Schémas de validation (Zod) pour les formulaires
+  - **services/** : Constantes, helpers, etc.
+  - **store/** : State management avec Redux Toolkit et RTK Query
+  - **types/** : Types TypeScript partagés
 
-```js
-export default tseslint.config([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+---
 
-      // Remove tseslint.configs.recommended and replace with this
-      ...tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      ...tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      ...tseslint.configs.stylisticTypeChecked,
+## Installation & Lancement
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+1. **Cloner le dépôt**
+   ```bash
+   git clone <url-de-ce-repo>
+   cd FSDArtisanClient
+   ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+2. **Installer les dépendances**
+   ```bash
+   npm install
+   ```
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+3. **Configurer les variables d'environnement**
+- Créez un fichier .env à la racine du projet (voir .env.example si disponible).
+- Ajoutez la variable suivante :
+  ```bash
+  VITE_API_URL=http://localhost:8000
+  ```
+- **Remarque** : Le fichier .env n'est pas présent dans le repo pour des raisons de sécurité.
+Demandez-le au propriétaire du projet ou créez-le vous-même avec l'URL de votre backend.
 
-export default tseslint.config([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+4. **Lancer le serveur de développement**
+   ```bash
+   npm run dev
+   ```
+
+L'application sera accessible sur *http://localhost:5173* par défaut.
+
+## Fonctionnement
+- Ce frontend communique avec l'API du backend (FSDArtisanServer) pour toutes les opérations (auth, gestion des meubles, ressources, fournisseurs, etc.).
+- Pour un fonctionnement optimal, assurez-vous que le backend est lancé et accessible à l'URL définie dans VITE_API_URL.
+
+## Fonctionnement
+- Ce frontend communique avec l'API du backend (FSDArtisanServer) pour toutes les opérations (auth, gestion des meubles, ressources, fournisseurs, etc.).
+- Pour un fonctionnement optimal, assurez-vous que le backend est lancé et accessible à l'URL définie dans VITE_API_URL.
+
+## Sécurité
+- Le fichier .env n'est pas versionné pour protéger les informations sensibles (URL API, etc.).
+- Ne partagez jamais vos credentials ou secrets dans un dépôt public.
+
+## Contact
+Pour toute question ou pour obtenir un exemple de fichier .env, contactez le propriétaire du dépôt.
